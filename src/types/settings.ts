@@ -14,9 +14,9 @@ export interface RAGAssistantSettings {
 export const DEFAULT_SETTINGS: RAGAssistantSettings = {
   ollamaUrl: 'http://localhost:11434',
   selectedModel: '',
-  temperature: 0.7,
+  temperature: 0.1,
   contextFree: false,
 }
 
-export const STORAGE_NAME = 'plugin-siyuan-rag-assistant'
+export const STORAGE_NAME = 'plugin-settings'
 

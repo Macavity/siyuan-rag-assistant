@@ -2,12 +2,6 @@
   <div class="rag-assistant-settings-dialog">
     <div class="rag-assistant-dialog__header">
       <h2 class="rag-assistant-dialog__header-title">RAG Assistant Settings</h2>
-      <button
-        class="b3-button b3-button--small b3-button--text"
-        @click="closeDialog"
-      >
-        <svg><use href="#iconClose"></use></svg>
-      </button>
     </div>
 
     <div class="rag-assistant-dialog__body">
@@ -25,18 +19,19 @@
         <!-- Model Selection -->
         <div class="rag-assistant-setting-item">
           <label class="rag-assistant-setting-label">Model:</label>
-          <SySelect
-            v-model="settings.selectedModel"
-            :options="modelOptions"
-            :disabled="loadingModels"
-          />
-          <button
-            class="b3-button b3-button--small b3-button--outline"
-            @click="fetchModels"
-            :disabled="loadingModels"
-          >
-            Refresh Models
-          </button>
+          <div class="rag-assistant-setting-field-group">
+            <SySelect
+              v-model="settings.selectedModel"
+              :options="modelOptions"
+              :disabled="loadingModels"
+            />
+            <SyButton
+              @click="fetchModels"
+              :disabled="loadingModels"
+            >
+              Refresh Models
+            </SyButton>
+          </div>
         </div>
 
         <!-- Temperature Slider -->
@@ -59,24 +54,19 @@
     </div>
 
     <div class="rag-assistant-dialog__footer">
-      <button
-        class="b3-button b3-button--cancel"
-        @click="closeDialog"
-      >
+      <SyButton @click="closeDialog">
         Cancel
-      </button>
-      <button
-        class="b3-button b3-button--text"
-        @click="saveSettings"
-      >
+      </SyButton>
+      <SyButton @click="saveSettings">
         Save
-      </button>
+      </SyButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import SyButton from './SiyuanTheme/SyButton.vue'
 import SyCheckbox from './SiyuanTheme/SyCheckbox.vue'
 import SyInput from './SiyuanTheme/SyInput.vue'
 import SySelect from './SiyuanTheme/SySelect.vue'
@@ -203,15 +193,23 @@ function saveSettings() {
 }
 
 .rag-assistant-setting-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  align-items: center;
 }
 
 .rag-assistant-setting-row {
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+.rag-assistant-setting-field-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .rag-assistant-setting-label {
