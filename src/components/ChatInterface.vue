@@ -32,54 +32,22 @@
     </div>
 
     <!-- Input Area -->
-    <div class="input-area">
-      <!-- Document context indicator -->
-      <div v-if="hasDocumentContext" class="context-indicator">
-        <div class="context-icon">📄</div>
-        <div class="context-text">
-          <span 
-            v-if="documentContext.documentId || documentContext.blockId"
-            class="block-ref" 
-            :data-type="'block-ref'" 
-            :data-id="documentContext.documentId || documentContext.blockId"
-            :data-subtype="'d'"
-            @click="openDocument"
-          >
-            {{ documentName ? documentName : 'Current Document' }}
-          </span>
-          <span v-else>{{ documentName ? documentName : 'Current Document' }}</span>
-        </div>
-      </div>
-      
-      <label class="input-label">Ask a question</label>
-      <SyTextarea 
-        v-model="currentInput"
-        class="input-textarea"
-        placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
-        :disabled="!isConfigured || isLoading"
-        @keydown="(e: KeyboardEvent) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSendMessage(e)
-          }
-        }"
-      />
-      <SyButton 
-        class="send-button"
-        @click="handleSendMessage"
-        :disabled="!isConfigured || isLoading"
-      >
-        <span v-if="isLoading">Sending...</span>
-        <span v-else>Send</span>
-      </SyButton>
-    </div>
+    <InputArea
+      v-model="currentInput"
+      :has-document-context="hasDocumentContext"
+      :document-context="documentContext"
+      :document-name="documentName"
+      :is-configured="isConfigured"
+      :is-loading="isLoading"
+      @send="handleSendMessage"
+      @document-click="handleDocumentClick"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
-import SyTextarea from './SiyuanTheme/SyTextarea.vue'
-import SyButton from './SiyuanTheme/SyButton.vue'
+import InputArea from './InputArea.vue'
 import { usePlugin } from '@/main'
 import RAGAssistantPlugin from '@/index'
 import { useChatHistory } from '@/composables/useChatHistory'
@@ -90,7 +58,7 @@ const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
 // Initialize composables
 const { messages, switchToDocument, addMessage, saveChatHistory } = useChatHistory(plugin)
-const { hasDocumentContext, documentName, documentContext, buildContextualMessage, openDocument, initDocumentContext } = useDocumentContext()
+const { hasDocumentContext, documentName, documentContext, buildContextualMessage, initDocumentContext } = useDocumentContext()
 const { isConfigured, isLoading, historyContainer, checkConfiguration, sendMessage, scrollToBottom } = useChatMessages(plugin)
 
 const currentInput = ref('')
@@ -134,6 +102,15 @@ watch(isLoading, async (newValue) => {
     scrollToBottom()
   }
 })
+
+// Handle document button click
+const handleDocumentClick = () => {
+  const docId = documentContext.value.documentId || documentContext.value.blockId
+  if (docId) {
+    // Navigate to the block using SiYuan's block URL
+    window.location.href = `siyuan://blocks/${docId}`
+  }
+}
 
 // Handle sending messages
 const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
@@ -193,7 +170,6 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   flex-direction: column;
   gap: 12px;
   background-color: var(--b3-theme-surface);
-  border-bottom: 1px solid var(--b3-border-color);
 }
 
 .message {
@@ -229,63 +205,6 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   }
 }
 
-.input-area {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.context-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: var(--b3-theme-background-light);
-  border: 1px solid var(--b3-border-color);
-  border-radius: var(--b3-border-radius);
-  font-size: 12px;
-  color: var(--b3-theme-on-surface-light);
-}
-
-.context-icon {
-  flex-shrink: 0;
-}
-
-.context-text {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.block-ref {
-  color: var(--b3-theme-primary);
-  cursor: pointer;
-}
-
-.input-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--b3-theme-on-surface);
-}
-
-.input-textarea {
-  width: 100%;
-  min-height: 60px;
-  max-height: 150px;
-  resize: vertical;
-  font-size: 14px;
-}
-
-.send-button {
-  align-self: flex-end;
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
 
 .settings-warning {
   display: flex;

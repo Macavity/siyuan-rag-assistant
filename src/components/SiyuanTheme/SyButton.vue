@@ -1,6 +1,6 @@
 <template>
   <button
-    class="b3-button b3-button--outline fn__flex-center fn__size200"
+    class="b3-button b3-button--outline fn__flex-center"
     :disabled="disabled"
     @click="$emit('click', $event)"
   >

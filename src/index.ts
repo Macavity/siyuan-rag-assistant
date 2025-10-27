@@ -6,6 +6,7 @@ import {
   IProtyle,
 } from "siyuan";
 import "@/index.scss";
+import { icons } from "./utils/icons";
 import PluginInfoString from '@/../plugin.json'
 import { destroy, init } from '@/main'
 import { createApp } from 'vue'
@@ -48,6 +49,7 @@ export default class RAGAssistantPlugin extends Plugin {
 
   async onload() {
     const frontEnd = getFrontend();
+    this.addIcons(icons);
     this.platform = frontEnd as SyFrontendTypes
     this.isMobile = frontEnd === "mobile" || frontEnd === "browser-mobile"
     this.isBrowser = frontEnd.includes('browser')
