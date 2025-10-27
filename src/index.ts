@@ -2,6 +2,8 @@ import {
   Dialog,
   Plugin,
   getFrontend,
+  IEventBusMap,
+  IProtyle,
 } from "siyuan";
 import "@/index.scss";
 import PluginInfoString from '@/../plugin.json'
@@ -9,6 +11,9 @@ import { destroy, init } from '@/main'
 import { createApp } from 'vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
 import { type RAGAssistantSettings, STORAGE_NAME, DEFAULT_SETTINGS } from '@/types/settings'
+import { SiyuanEvents } from "./types/siyuan-events";
+import { updateDocumentContext } from '@/utils/document-context'
+import { getBlockByID } from '@/api'
 
 let PluginInfo = {
   version: '',
@@ -21,6 +26,11 @@ try {
 const {
   version,
 } = PluginInfo
+
+type TEventSwitchProtyle = CustomEvent<
+  IEventBusMap[SiyuanEvents.SWITCH_PROTYLE]
+>;
+
 
 export default class RAGAssistantPlugin extends Plugin {
   // Run as mobile
@@ -53,6 +63,53 @@ export default class RAGAssistantPlugin extends Plugin {
     } catch (err) {
       this.isElectron = false
     }
+
+    // Listen for document switching events to track current document context
+    this.eventBus.on(SiyuanEvents.SWITCH_PROTYLE, async (e: TEventSwitchProtyle) => {
+      const protyleData = e.detail as { protyle: IProtyle }
+      
+      // Log the full event data for debugging
+      console.log('SWITCH_PROTYLE event data:', protyleData)
+      
+      if (!protyleData?.protyle) {
+        console.log('No protyle instance found in event')
+        return
+      }
+      
+      const protyle = protyleData.protyle
+      const block = protyle.block as any
+      
+      // Extract document ID and block ID from the protyle instance
+      const documentId = block?.rootID || block?.id || null
+      const blockId = block?.id || null
+      
+      console.log('Document context updated:', { documentId, blockId })
+      
+      // Only update if we have valid IDs
+      if (documentId || blockId) {
+        // Fetch document name from the block data
+        let documentName: string | null = null
+        try {
+          // Get the document ID (root_id) to fetch the document name
+          const targetBlockId = documentId || blockId
+          if (targetBlockId) {
+            const blockData = await getBlockByID(targetBlockId)
+            console.log('Fetched block data:', blockData)
+            
+            // Try different ways to get the document name
+            if (blockData?.content) {
+              documentName = blockData.content
+            } 
+            
+            console.log('Fetched document name:', documentName)
+          }
+        } catch (error) {
+          console.error('Error fetching document name:', error)
+        }
+        
+        updateDocumentContext(documentId, blockId, documentName)
+      }
+    })
 
     console.log('Plugin loaded, the plugin is ', this)
 
