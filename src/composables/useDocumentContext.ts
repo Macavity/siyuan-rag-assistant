@@ -32,17 +32,29 @@ export function useDocumentContext() {
       // Set a system message to establish the behavior
       systemMessage = {
         role: 'system',
-        content: 'You are an AI assistant helping with a specific document. Always answer questions based on the provided document context. If information is not in the context, clearly state that. Be concise and accurate.'
+        content: `You are an AI assistant helping with a specific document written in Markdown format. Always answer questions based on the provided document context. If information is not in the context, clearly state that. Be concise and accurate.
+
+IMPORTANT MARKDOWN SYNTAX TO RECOGNIZE:
+- Tasks/Checkboxes: Look for "- [ ]" (open task) and "- [x]" (completed task)
+- Headers: "#" for h1, "##" for h2, "###" for h3, etc.
+- Lists: "-" for unordered lists, numbers for ordered lists
+- Links: "[text](url)" or block references like "#TagName"
+- Bold text: **text**
+- Italic text: *text* or _text_
+- Code: \`code\` for inline code, triple backticks for code blocks
+
+When counting tasks, specifically look for lines starting with "- [ ]" to count open tasks, and "- [x]" for completed tasks.`
       }
 
-      contextualMessage = `Document Context:
+      contextualMessage = `Document Context (Markdown format):
+"""      
 ${documentContent}
-
+"""
 ---
 
 User Question: ${userMessage}
 
-Please provide your answer based on the document context above.`
+Please provide your answer based on the document context above. Pay attention to markdown syntax like tasks (- [ ] for open, - [x] for completed), headers (#), lists, links, and formatting.`
     }
 
     return { contextualMessage, systemMessage }
