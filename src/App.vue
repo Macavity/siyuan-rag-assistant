@@ -64,7 +64,7 @@
         Show All Values
       </SyButton>
       <SyButton
-        @click="openSetting"
+        @click="() => (plugin as any).createSettingsDialog()"
       >
         Open Setting
       </SyButton>
@@ -117,10 +117,6 @@ const showAllValues = () => {
   `)
 }
 
-const openSetting = () => {
-  alert('Need open plugin setting.')
-}
-
 const plugin = usePlugin()
 console.log('plugin is ', plugin)
 
@@ -169,10 +165,6 @@ onMounted(() => {
 })
 
 
-onMounted(() => {
-  window._sy_plugin_sample = {}
-  window._sy_plugin_sample.openSetting = openSetting
-})
 </script>
 
 
