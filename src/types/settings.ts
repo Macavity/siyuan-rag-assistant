@@ -6,6 +6,7 @@ export interface RAGAssistantSettings {
   selectedModel: string
   temperature: number
   contextFree: boolean
+  includeSubDocuments: boolean
 }
 
 /**
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: RAGAssistantSettings = {
   selectedModel: '',
   temperature: 0.1,
   contextFree: false,
+  includeSubDocuments: false,
 }
 
 export const STORAGE_NAME = 'plugin-settings'

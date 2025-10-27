@@ -3,7 +3,7 @@
  * Tracks the currently open document in SiYuan and provides utilities to get document content
  */
 
-import { exportMdContent, getBlockKramdown, getBlockByID } from '@/api'
+import { exportMdContent, getBlockKramdown, getBlockByID, listDocsByPath } from '@/api'
 
 interface DocumentContext {
   documentId: string | null
@@ -105,6 +105,52 @@ export async function getCurrentDocumentContent(): Promise<string | null> {
   }
   
   return null
+}
+
+/**
+ * Get content of sub-documents under a path
+ */
+export async function getSubDocumentsContent(
+  notebookId: string,
+  path: string,
+  includeSubDocuments: boolean
+): Promise<string | null> {
+  if (!includeSubDocuments) {
+    return null
+  }
+
+  try {
+    const result = await listDocsByPath(notebookId, path)
+    
+    if (!result?.files || result.files.length === 0) {
+      return null
+    }
+
+    const subDocumentsContent: string[] = []
+
+    // Fetch content for each sub-document
+    for (const file of result.files) {
+      try {
+        const content = await getDocumentContentById(file.id)
+        if (content) {
+          // Use the file name as the header
+          const fileName = file.alias || file.name || 'Untitled'
+          subDocumentsContent.push(`## ${fileName}\n\n${content}`)
+        }
+      } catch (error) {
+        console.error(`Error fetching content for ${file.name}:`, error)
+      }
+    }
+
+    if (subDocumentsContent.length > 0) {
+      return subDocumentsContent.join('\n\n---\n\n')
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error getting sub-documents content:', error)
+    return null
+  }
 }
 
 /**
