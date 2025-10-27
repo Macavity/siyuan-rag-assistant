@@ -1,7 +1,7 @@
 {
-  "name": "plugin-sample-vite-vue",
-  "author": "wetoria",
-  "url": "https://github.com/Wetoria/plugin-sample-vite-vue",
+  "name": "siyuan-rag-assistant",
+  "author": "Alexander Pape",
+  "url": "https://github.com/Macavity/siyuan-rag-assistant",
   "version": "0.0.1",
   "minAppVersion": "2.10.14",
   "disabledInPublish": true,
@@ -12,14 +12,14 @@
     "all"
   ],
   "displayName": {
-    "default": "plugin-sample-vite-vue",
-    "en_US": "plugin-sample-vite-vue",
-    "zh_CN": "plugin-sample-vite-vue"
+    "default": "RAG AI Assistant",
+    "en_US": "RAG AI Assistant",
+    "zh_CN": "RAG AI Assistant"
   },
   "description": {
-    "default": "plugin-sample-vite-vue",
-    "en_US": "plugin-sample-vite-vue",
-    "zh_CN": "plugin-sample-vite-vue"
+    "default": "RAG AI Assistant",
+    "en_US": "RAG AI Assistant",
+    "zh_CN": "RAG AI Assistant"
   },
   "readme": {
     "default": "README.md",

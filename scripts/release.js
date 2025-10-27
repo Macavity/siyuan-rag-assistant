@@ -8,7 +8,7 @@ import process from 'node:process'
 import readline from 'node:readline'
 
 const require = createRequire(import.meta.url)
-const PluginInfo = require('./plugin.json')
+const PluginInfo = require('../plugin.json')
 
 const {
   version: currentVersion = '0.0.0',
