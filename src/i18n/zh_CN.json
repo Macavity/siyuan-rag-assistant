@@ -1,3 +1,4 @@
 {
-  "addTopBarIcon": "PluginSampleViteVue"
+  "addTopBarIcon": "PluginSampleViteVue",
+  "dockTitle": "RAG助手"
 }
