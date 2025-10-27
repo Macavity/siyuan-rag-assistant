@@ -1,39 +1,20 @@
 <script setup lang="ts">
 import { usePlugin } from '@/main'
-import { onMounted, ref, watchEffect } from 'vue'
-
-
-const isChecked = ref(false)
-
-const inputValue = ref('')
-
-const selectValue = ref()
-const selectOptions = ref([
-  { value: '1', text: 'Option 1' },
-  { value: '2', text: 'Option 2' },
-  { value: '3', text: 'Option 3' },
-])
-
-const textareaValue = ref('')
-
-const showAllValues = () => {
-  alert(`
-    isChecked: ${isChecked.value}
-    inputValue: ${inputValue.value}
-    selectValue: ${selectValue.value}
-    textareaValue: ${textareaValue.value}
-  `)
-}
+import { createApp } from 'vue'
+import ChatInterface from '@/components/ChatInterface.vue'
 
 const plugin = usePlugin()
 console.log('plugin is ', plugin)
 
+let chatApp: any = null
+let chatDiv: HTMLDivElement | null = null
+
 plugin.addDock({
       config: {
         position: "RightTop",
-        size: { width: 300, height: 0 },
+        size: { width: 400, height: 0 },
         icon: "iconSparkles",
-        title: plugin.i18n.dockTitle,
+        title: plugin.i18n.dockTitle || 'RAG Assistant',
       },
       data: {
         // Any initial data for the dock, if needed
@@ -46,23 +27,29 @@ plugin.addDock({
         // console.log("Task list dock update");
       },
       init: (dock) => {
-        // mount component
+        // Create container for chat interface
+        chatDiv = document.createElement('div')
+        chatDiv.style.width = '100%'
+        chatDiv.style.height = '100%'
+        
+        // Append to dock element
+        if (dock?.element) {
+          dock.element.appendChild(chatDiv)
+        }
+        
+        // Mount ChatInterface component
+        chatApp = createApp(ChatInterface)
+        chatApp.mount(chatDiv)
       },
       destroy() {
-        // console.log("Task list dock destroyed");
+        // Clean up chat interface
+        if (chatApp && chatDiv) {
+          chatApp.unmount()
+          chatDiv = null
+          chatApp = null
+        }
       },
     });
-
-
-const statusRef = ref<HTMLDivElement>()
-watchEffect(() => {
-  console.log('statusRef is ', statusRef.value)
-})
-// two ways to add status bar
-onMounted(() => {
-
-})
-
 
 </script>
 
