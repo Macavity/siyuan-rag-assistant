@@ -4,68 +4,50 @@ globs: *.ts,*.vue
 alwaysApply: false
 ---
 
-  You are an expert in Laravel, Vue.js, and modern full-stack web development technologies.
+You are an expert in TypeScript, Node.js, Vue 3, Siyuan and Tailwind.
 
-  Key Principles
-  - Write concise, technical responses with accurate examples in PHP and Vue.js.
-  - Follow Laravel and Vue.js best practices and conventions.
-  - Use object-oriented programming with a focus on SOLID principles.
-  - Favor iteration and modularization over duplication.
-  - Use descriptive and meaningful names for variables, methods, and files.
-  - Adhere to Laravel's directory structure conventions (e.g., app/Http/Controllers).
-  - Prioritize dependency injection and service containers.
+Code Style and Structure
+- Write concise, technical TypeScript code with accurate examples.
+- Use composition API and declarative programming patterns; avoid options API.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, composables, helpers, static content, types.
 
-  Structure
-  - resources/js/layouts for Layouts
-  - resources/js/components for Components
-  - resources/js/pages for Pages
+Naming Conventions
+- Use lowercase with dashes for directories (e.g., components/auth-wizard).
+- Use PascalCase for component names (e.g., AuthWizard.vue).
+- Use camelCase for composables (e.g., useAuthState.ts).
 
-  Laravel
-  - Leverage PHP 8.4+ features (e.g., readonly properties, match expressions).
-  - Apply strict typing: declare(strict_types=1).
-  - Follow PSR-12 coding standards for PHP.
-  - Use Laravel's built-in features and helpers (e.g., `Str::` and `Arr::`).
-  - File structure: Stick to Laravel's MVC architecture and directory organization.
-  - Implement error handling and logging:
-    - Use Laravel's exception handling and logging tools.
-    - Create custom exceptions when necessary.
-    - Apply try-catch blocks for predictable errors.
-  - Use Laravel's request validation and middleware effectively.
-  - Implement Eloquent ORM for database modeling and queries.
-  - Use migrations and seeders to manage database schema changes and test data.
+TypeScript Usage
+- Use TypeScript for all code; prefer types over interfaces.
+- Use Vue 3 with TypeScript, leveraging defineComponent and PropType.
 
-  Vue.js
-  - Utilize Vite for modern and fast development with hot module reloading.
-  - Organize components under src/components and use lazy loading for routes.
-  - Apply Vue Router for SPA navigation and dynamic routing.
-  - Implement Pinia for state management in a modular way.
-  - Validate forms using Vuelidate and enhance UI with PrimeVue components.
-  
-  Dependencies
-  - Laravel (latest stable version)
-  - Composer for dependency management
-  - TailwindCSS for styling and responsive design
-  - Vite for asset bundling and Vue integration
+Syntax and Formatting
+- Use arrow functions for methods and computed properties.
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
+- Use template syntax for declarative rendering.
 
-  Best Practices
-  - Use Eloquent ORM and Repository patterns for data access.
-  - Secure APIs with Laravel Passport and ensure proper CSRF protection.
-  - Leverage Laravel’s caching mechanisms for optimal performance.
-  - Use Laravel’s testing tools (PHPUnit, Dusk) for unit and feature testing.
-  - Apply API versioning for maintaining backward compatibility.
-  - Ensure database integrity with proper indexing, transactions, and migrations.
-  - Use Laravel's localization features for multi-language support.
-  - Optimize front-end development with TailwindCSS and PrimeVue integration.
+UI and Styling
+- Siyuan classes css variables for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
 
-  Key Conventions
-  1. Follow Laravel's MVC architecture.
-  2. Use routing for clean URL and endpoint definitions.
-  3. Implement request validation with Form Requests.
-  4. Build reusable Vue components and modular state management.
-  5. Use Laravel's Blade engine or API resources for efficient views.
-  6. Manage database relationships using Eloquent's features.
-  7. Ensure code decoupling with Laravel's events and listeners.
-  8. Implement job queues and background tasks for better scalability.
-  9. Use Laravel's built-in scheduling for recurring processes.
-  10. Employ Laravel Mix or Vite for asset optimization and bundling.
+Performance Optimization
+- Use Suspense for asynchronous components.
+- Implement lazy loading for routes and components.
+- Optimize images: use WebP format, include size data, implement lazy loading.
+
+Key Conventions
+- Use VueUse for common composables and utility functions.
+- Use Pinia for state management.
+- Optimize Web Vitals (LCP, CLS, FID).
+
+Vue 3 and Composition API Best Practices
+- Use <script setup> syntax for concise component definitions.
+- Leverage ref, reactive, and computed for reactive state management.
+- Use provide/inject for dependency injection when appropriate.
+- Implement custom composables for reusable logic.
+
+Follow the Vue.js documentation for up-to-date best practices on Data Fetching, Rendering, and Routing.
+
+
   
