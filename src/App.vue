@@ -1,30 +1,4 @@
-<template>
-  <div class="plugin-app-main">
-
-    <div class="demo">
-
-      <Teleport
-        :to="statusRef"
-        v-if="statusRef"
-      >
-        <SyIcon
-          name="iconHeart"
-          style="
-            color: green;
-          "
-        />
-      </Teleport>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import SyButton from '@/components/SiyuanTheme/SyButton.vue'
-import SyCheckbox from '@/components/SiyuanTheme/SyCheckbox.vue'
-import SyIcon from '@/components/SiyuanTheme/SyIcon.vue'
-import SyInput from '@/components/SiyuanTheme/SyInput.vue'
-import SySelect from '@/components/SiyuanTheme/SySelect.vue'
-import SyTextarea from '@/components/SiyuanTheme/SyTextarea.vue'
 import { usePlugin } from '@/main'
 import { onMounted, ref, watchEffect } from 'vue'
 
@@ -54,15 +28,31 @@ const showAllValues = () => {
 const plugin = usePlugin()
 console.log('plugin is ', plugin)
 
+plugin.addDock({
+      config: {
+        position: "RightTop",
+        size: { width: 300, height: 0 },
+        icon: "iconSparkles",
+        title: plugin.i18n.dockTitle,
+      },
+      data: {
+        // Any initial data for the dock, if needed
+      },
+      type: "rag-assistant-dock",
+      resize() {
+        // console.log("Task list dock resized");
+      },
+      update() {
+        // console.log("Task list dock update");
+      },
+      init: (dock) => {
+        // mount component
+      },
+      destroy() {
+        // console.log("Task list dock destroyed");
+      },
+    });
 
-// add top bar button
-plugin.addTopBar({
-  icon: 'iconHeart',
-  title: 'Plugin Sample',
-  callback: () => {
-    alert('Hello Siyuan.')
-  },
-})
 
 const statusRef = ref<HTMLDivElement>()
 watchEffect(() => {
@@ -70,32 +60,7 @@ watchEffect(() => {
 })
 // two ways to add status bar
 onMounted(() => {
-  // 1. use Teleport in Vue way
-  // show as a green heart icon
-  const status = document.getElementById('status') as HTMLDivElement
-  if (status) {
-    // delay 5 seconds to bind statusRef
-    // avoid status is not ready
-    setTimeout(() => {
-      statusRef.value = status
-    }, 5000)
-  }
 
-
-  // 2. use addStatusBar in siyuan plugin way
-  // show as a red heart icon
-  const tempStatus = document.createElement('div')
-  tempStatus.classList.add('temp-status')
-  tempStatus.innerHTML = `
-    <svg style="width: 12px; height: 12px; color: red;">
-      <use xlink:href="#iconHeart"></use>
-    </svg>
-  `
-
-  plugin.addStatusBar({
-    element: tempStatus,
-    position: 'right',
-  })
 })
 
 
@@ -140,7 +105,7 @@ onMounted(() => {
 
 <!-- 全局样式 -->
 <style lang="scss">
-.plugin-sample-vite-vue-app {
+.plugin-ra-vue-app {
   width: 100vw;
   height: 100dvh;
   max-height: 100vh;

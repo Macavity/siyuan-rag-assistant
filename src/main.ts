@@ -25,7 +25,7 @@ export function init(pluginInstance: Plugin) {
   usePlugin(pluginInstance);
 
   div = document.createElement('div')
-  div.classList.toggle('plugin-sample-vite-vue-app')
+  div.classList.toggle('plugin-ra-vue-app')
   div.id = 'siyuan-rag-assistant'
   app = createApp(App)
   app.mount(div)
