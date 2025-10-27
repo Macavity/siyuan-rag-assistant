@@ -18,20 +18,25 @@ export function usePlugin(pluginProps?: Plugin): Plugin {
 
 
 let app = null
-export function init(plugin: Plugin) {
-  // bind plugin hook
-  usePlugin(plugin);
+let div: HTMLDivElement | null = null
 
-  const div = document.createElement('div')
-  div.classList.toggle('plugin-sample-vite-vue-app')
-  div.id = this.name
+export function init(pluginInstance: Plugin) {
+  // bind plugin hook
+  usePlugin(pluginInstance);
+
+  div = document.createElement('div')
+  div.classList.toggle('plugin-ra-vue-app')
+  div.id = 'siyuan-rag-assistant'
   app = createApp(App)
   app.mount(div)
   document.body.appendChild(div)
 }
 
 export function destroy() {
-  app.unmount()
-  const div = document.getElementById(this.name)
-  document.body.removeChild(div)
+  if (app && div) {
+    app.unmount()
+    document.body.removeChild(div)
+    div = null
+    app = null
+  }
 }
