@@ -22,24 +22,29 @@
       />
     </div>
     
-    <!-- Send button at bottom -->
+    <!-- Footer with clear and send buttons -->
     <div class="input-area-footer">
-      <SyButton 
+      <SyIconButton 
+        class="clear-button ariaLabel"
+        iconName="iconTrashcan"
+        ariaLabel="Clear chat history"
+        @click="handleClearHistory"
+        :disabled="!isConfigured || isLoading"
+      />
+      <SyIconButton 
         class="send-button ariaLabel"
-        :aria-label="`Send ⏎`"
+        iconName="iconSend"
+        ariaLabel="Send"
         @click="handleSend"
         :disabled="!isConfigured || isLoading"
-      >
-        <SyIcon name="iconSend" size="14" />
-      </SyButton>
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import StealthTextarea from './SiyuanTheme/StealthTextarea.vue'
-import SyButton from './SiyuanTheme/SyButton.vue'
-import SyIcon from './SiyuanTheme/SyIcon.vue'
+import SyIconButton from './SiyuanTheme/SyIconButton.vue'
 import DocumentReference from './SiyuanTheme/DocumentReference.vue'
 
 defineProps<{
@@ -55,6 +60,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'send'): void
   (e: 'document-click'): void
+  (e: 'clear-history'): void
 }>()
 
 // Handle document button click
@@ -73,6 +79,11 @@ const handleKeydown = (e: KeyboardEvent) => {
 // Handle send button click
 const handleSend = () => {
   emit('send')
+}
+
+// Handle clear history button click
+const handleClearHistory = () => {
+  emit('clear-history')
 }
 </script>
 
@@ -98,10 +109,12 @@ const handleSend = () => {
 .input-area-footer {
   margin-top: 4px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.send-button {
+.send-button,
+.clear-button {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -33,6 +33,7 @@ defineEmits<{
   background: transparent;
   color: var(--b3-theme-on-surface);
   outline: none;
+  resize: none;
   
   &:focus {
     border: none !important;

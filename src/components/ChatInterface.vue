@@ -41,6 +41,7 @@
       :is-loading="isLoading"
       @send="handleSendMessage"
       @document-click="handleDocumentClick"
+      @clear-history="handleClearHistory"
     />
   </div>
 </template>
@@ -57,7 +58,7 @@ import { useChatMessages } from '@/composables/useChatMessages'
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
 // Initialize composables
-const { messages, switchToDocument, addMessage, saveChatHistory } = useChatHistory(plugin)
+const { messages, switchToDocument, addMessage, saveChatHistory, clearHistory } = useChatHistory(plugin)
 const { hasDocumentContext, documentName, documentContext, buildContextualMessage, initDocumentContext } = useDocumentContext()
 const { isConfigured, isLoading, historyContainer, checkConfiguration, sendMessage, scrollToBottom } = useChatMessages(plugin)
 
@@ -109,6 +110,15 @@ const handleDocumentClick = () => {
   if (docId) {
     // Navigate to the block using SiYuan's block URL
     window.location.href = `siyuan://blocks/${docId}`
+  }
+}
+
+// Handle clear history button click
+const handleClearHistory = async () => {
+  const currentDocId = documentContext.value.documentId || documentContext.value.blockId
+  if (currentDocId) {
+    clearHistory()
+    await saveChatHistory(currentDocId)
   }
 }
 

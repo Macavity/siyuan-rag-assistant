@@ -41,6 +41,9 @@ Key Conventions
 - Use Pinia for state management.
 - Optimize Web Vitals (LCP, CLS, FID).
 
+Siyuan Best Practices:
+- to get a tooltip on an element you can add the class "ariaLabel" along with aria-label attribute. 
+
 Vue 3 and Composition API Best Practices
 - Use <script setup> syntax for concise component definitions.
 - Leverage ref, reactive, and computed for reactive state management.
