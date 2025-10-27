@@ -50,6 +50,12 @@
           <label class="rag-assistant-setting-label">Context-Free Chats:</label>
           <SyCheckbox v-model="settings.contextFree" />
         </div>
+
+        <!-- Include Sub Documents Toggle -->
+        <div class="rag-assistant-setting-item rag-assistant-setting-row">
+          <label class="rag-assistant-setting-label">Include Sub Documents:</label>
+          <SyCheckbox v-model="settings.includeSubDocuments" />
+        </div>
       </div>
     </div>
 

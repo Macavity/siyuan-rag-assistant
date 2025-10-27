@@ -62,3 +62,31 @@ interface IResForwardProxy {
 interface IResExportResources {
   path: string;
 }
+
+interface IResListDocsByPath {
+  box: string;
+  path: string;
+  files: Array<{
+    path: string;
+    name: string;
+    id: string;
+    icon?: string;
+    name1?: string;
+    alias?: string;
+    memo?: string;
+    bookmark?: string;
+    count?: number;
+    size?: number;
+    hSize?: string;
+    mtime?: number;
+    ctime?: number;
+    hMtime?: string;
+    hCtime?: string;
+    sort?: number;
+    subFileCount?: number;
+    hidden?: boolean;
+    newFlashcardCount?: number;
+    dueFlashcardCount?: number;
+    flashcardCount?: number;
+  }>;
+}

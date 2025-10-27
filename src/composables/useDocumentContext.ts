@@ -4,7 +4,9 @@
  */
 
 import { ref, Ref } from 'vue'
-import { subscribeToDocumentContext, getCurrentDocumentContent } from '@/utils/document-context'
+import { subscribeToDocumentContext, getCurrentDocumentContent, getSubDocumentsContent } from '@/utils/document-context'
+import { getBlockByID } from '@/api'
+import type { RAGAssistantSettings } from '@/types/settings'
 
 export function useDocumentContext() {
   const hasDocumentContext: Ref<boolean> = ref(false)
@@ -14,12 +16,27 @@ export function useDocumentContext() {
   /**
    * Build contextual message with document content
    */
-  const buildContextualMessage = async (userMessage: string) => {
+  const buildContextualMessage = async (userMessage: string, settings?: RAGAssistantSettings) => {
     let documentContent: string | null = null
+    let subDocumentsContent: string | null = null
     
     if (hasDocumentContext.value) {
       try {
         documentContent = await getCurrentDocumentContent()
+        
+        // Get sub-documents if the setting is enabled
+        const docId = documentContext.value.documentId || documentContext.value.blockId
+        if (settings?.includeSubDocuments && docId) {
+          try {
+            const block = await getBlockByID(docId)
+            if (block?.path && block?.box) {
+              
+              subDocumentsContent = await getSubDocumentsContent(block.box, block.path, true)
+            }
+          } catch (error) {
+            console.error('Error getting sub-documents:', error)
+          }
+        }
       } catch (error) {
         console.error('Error getting document context:', error)
       }
@@ -28,7 +45,7 @@ export function useDocumentContext() {
     let contextualMessage = userMessage
     let systemMessage: { role: 'system', content: string } | null = null
 
-    if (documentContent) {
+    if (documentContent || subDocumentsContent) {
       // Set a system message to establish the behavior
       systemMessage = {
         role: 'system',
@@ -63,9 +80,16 @@ MARKDOWN SYNTAX:
 Be honest: if information isn't in the document, say so. Never make things up.`
       }
 
+      let fullContent = documentContent || ''
+      
+      // Append sub-documents if available
+      if (subDocumentsContent) {
+        fullContent += '\n\n# Sub Documents\n\n' + subDocumentsContent
+      }
+
       contextualMessage = `Document Content:
 """      
-${documentContent}
+${fullContent}
 """
 ---
 Question: ${userMessage}

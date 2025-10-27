@@ -122,46 +122,49 @@ const handleClearHistory = async () => {
   }
 }
 
-// Handle sending messages
-const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
-  if (event) {
-    event.preventDefault()
-  }
-  
-  if (!currentInput.value.trim() || !isConfigured.value) {
-    return
-  }
-
-  const userMessage = currentInput.value.trim()
-  currentInput.value = ''
-
-  // Build contextual message
-  const { contextualMessage, systemMessage } = await buildContextualMessage(userMessage)
-
-  // Add user message to history
-  addMessage({ role: 'user', content: userMessage })
-
-  // Scroll to bottom
-  await nextTick()
-  scrollToBottom()
-
-  try {
-    // Send message via composable
-    await sendMessage(userMessage, contextualMessage, systemMessage, messages)
-    
-    // Save chat history after receiving response
-    const currentDocId = documentContext.value.documentId || documentContext.value.blockId
-    if (currentDocId) {
-      await saveChatHistory(currentDocId)
+  // Handle sending messages
+  const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
+    if (event) {
+      event.preventDefault()
     }
-  } catch (error) {
-    // Error already handled in composable
+    
+    if (!currentInput.value.trim() || !isConfigured.value) {
+      return
+    }
+
+    const userMessage = currentInput.value.trim()
+    currentInput.value = ''
+
+    // Get settings
+    const settings = await plugin.getSettings()
+
+    // Build contextual message
+    const { contextualMessage, systemMessage } = await buildContextualMessage(userMessage, settings)
+
+    // Add user message to history
+    addMessage({ role: 'user', content: userMessage })
+
+    // Scroll to bottom
+    await nextTick()
+    scrollToBottom()
+
+    try {
+      // Send message via composable
+      await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+      
+      // Save chat history after receiving response
+      const currentDocId = documentContext.value.documentId || documentContext.value.blockId
+      if (currentDocId) {
+        await saveChatHistory(currentDocId)
+      }
+    } catch (error) {
+      // Error already handled in composable
+    }
+    
+    // Scroll again after response
+    await nextTick()
+    scrollToBottom()
   }
-  
-  // Scroll again after response
-  await nextTick()
-  scrollToBottom()
-}
 </script>
 
 <style lang="scss" scoped>
