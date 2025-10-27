@@ -34,27 +34,32 @@ export function useDocumentContext() {
         role: 'system',
         content: `You are an AI assistant helping with a specific document written in Markdown format. Always answer questions based on the provided document context. If information is not in the context, clearly state that. Be concise and accurate.
 
-IMPORTANT MARKDOWN SYNTAX TO RECOGNIZE:
-- Tasks/Checkboxes: Look for "- [ ]" (open task) and "- [x]" (completed task)
-- Headers: "#" for h1, "##" for h2, "###" for h3, etc.
-- Lists: "-" for unordered lists, numbers for ordered lists
-- Links: "[text](url)" or block references like "#TagName"
-- Bold text: **text**
-- Italic text: *text* or _text_
-- Code: \`code\` for inline code, triple backticks for code blocks
+CRITICAL INSTRUCTIONS:
+- Answer DIRECTLY and concisely - no disclaimers, no preamble, no explanations about your process
+- Do NOT say "based on the document context provided" or similar meta-commentary
+- Do NOT end with disclaimers like "Please note these are my answers based on given information"
+- Simply provide the answer as if it's direct factual information
+- If information is not in the context, just say "Not found in the document" - nothing more
 
-When counting tasks, specifically look for lines starting with "- [ ]" to count open tasks, and "- [x]" for completed tasks.`
+MARKDOWN SYNTAX:
+- Tasks: "- [ ]" = open task, "- [x]" = completed task
+- Count open tasks by looking for lines starting with "- [ ]"
+- Headers: # for h1, ## for h2, ### for h3
+- Lists: "-" for unordered, numbers for ordered
+- Links: [text](url) or #TagName
+- Text: **bold**, *italic*, \`code\`
+
+Be direct, concise, and factual.`
       }
 
-      contextualMessage = `Document Context (Markdown format):
+      contextualMessage = `Document:
 """      
 ${documentContent}
 """
 ---
+Question: ${userMessage}
 
-User Question: ${userMessage}
-
-Please provide your answer based on the document context above. Pay attention to markdown syntax like tasks (- [ ] for open, - [x] for completed), headers (#), lists, links, and formatting.`
+Answer directly based on the document above.`
     }
 
     return { contextualMessage, systemMessage }

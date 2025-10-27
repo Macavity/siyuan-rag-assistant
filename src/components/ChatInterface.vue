@@ -55,8 +55,14 @@
       <SyTextarea 
         v-model="currentInput"
         class="input-textarea"
+        placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
         :disabled="!isConfigured || isLoading"
-        @keydown.ctrl.enter="handleSendMessage"
+        @keydown="(e: KeyboardEvent) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            handleSendMessage(e)
+          }
+        }"
       />
       <SyButton 
         class="send-button"
@@ -71,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import SyTextarea from './SiyuanTheme/SyTextarea.vue'
 import SyButton from './SiyuanTheme/SyButton.vue'
 import { usePlugin } from '@/main'
@@ -117,6 +123,16 @@ onBeforeUnmount(() => {
 // Initialize on mount
 onMounted(async () => {
   await checkConfiguration()
+  scrollToBottom()
+})
+
+// Watch for loading state changes and scroll to show indicator
+watch(isLoading, async (newValue) => {
+  if (newValue) {
+    // Loading started, scroll to show the loading indicator
+    await nextTick()
+    scrollToBottom()
+  }
 })
 
 // Handle sending messages
@@ -139,10 +155,6 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   addMessage({ role: 'user', content: userMessage })
 
   // Scroll to bottom
-  await nextTick()
-  scrollToBottom()
-
-  // Scroll to show loading indicator
   await nextTick()
   scrollToBottom()
 
@@ -198,6 +210,7 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
       padding: 8px 12px;
       max-width: 80%;
       word-wrap: break-word;
+      user-select: text;
     }
   }
   
@@ -211,6 +224,7 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
       padding: 8px 12px;
       max-width: 80%;
       word-wrap: break-word;
+      user-select: text;
     }
   }
 }
@@ -258,8 +272,10 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
 
 .input-textarea {
   width: 100%;
-  min-height: 80px;
+  min-height: 60px;
+  max-height: 150px;
   resize: vertical;
+  font-size: 14px;
 }
 
 .send-button {
