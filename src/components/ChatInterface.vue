@@ -16,8 +16,17 @@
         :key="index" 
         :class="['message', message.role]"
       >
+        <div class="message-content" v-html="formatMessage(message.content)"></div>
+      </div>
+      
+      <!-- Loading indicator -->
+      <div v-if="isLoading" class="message assistant">
         <div class="message-content">
-          {{ message.content }}
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -46,54 +55,56 @@
       <SyTextarea 
         v-model="currentInput"
         class="input-textarea"
-        :disabled="!isConfigured"
-        @keydown.ctrl.enter="sendMessage"
+        :disabled="!isConfigured || isLoading"
+        @keydown.ctrl.enter="handleSendMessage"
       />
       <SyButton 
         class="send-button"
-        @click="sendMessage"
-        :disabled="!isConfigured"
+        @click="handleSendMessage"
+        :disabled="!isConfigured || isLoading"
       >
-        Send
+        <span v-if="isLoading">Sending...</span>
+        <span v-else>Send</span>
       </SyButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import SyTextarea from './SiyuanTheme/SyTextarea.vue'
 import SyButton from './SiyuanTheme/SyButton.vue'
-import { sendChatMessage } from '@/services/ollama'
-import { pushErrMsg } from '@/api'
 import { usePlugin } from '@/main'
 import RAGAssistantPlugin from '@/index'
-import { getCurrentDocumentContent, subscribeToDocumentContext } from '@/utils/document-context'
+import { useChatHistory } from '@/composables/useChatHistory'
+import { useDocumentContext } from '@/composables/useDocumentContext'
+import { useChatMessages } from '@/composables/useChatMessages'
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
+// Initialize composables
+const { messages, switchToDocument, addMessage, saveChatHistory } = useChatHistory(plugin)
+const { hasDocumentContext, documentName, documentContext, buildContextualMessage, openDocument, initDocumentContext } = useDocumentContext()
+const { isConfigured, isLoading, historyContainer, checkConfiguration, sendMessage, scrollToBottom } = useChatMessages(plugin)
+
+const currentInput = ref('')
+
+// Format message content - convert newlines to HTML breaks
+const formatMessage = (content: string) => {
+  if (!content) return ''
+  return content.replace(/\n/g, '<br>')
 }
 
-const messages = ref<Message[]>([])
-const currentInput = ref('')
-const historyContainer = ref<HTMLDivElement>()
-const isConfigured = ref(false)
-const hasDocumentContext = ref(false)
-const documentName = ref<string>('')
-const documentContext = ref<any>({})
-
-// Subscribe to document context changes
-const unsubscribe = subscribeToDocumentContext((context) => {
-    console.log('Document context updated:', context)
-  documentContext.value = context
-  hasDocumentContext.value = !!(context.documentId || context.blockId)
-  if (hasDocumentContext.value) {
-    documentName.value = context.documentName || 'Current Document'
-  } else {
-    documentName.value = ''
+// Handle document context changes
+const unsubscribe = initDocumentContext(async (context) => {
+  const newDocumentId = context.documentId || context.blockId
+  
+  // Switch to the new document's chat history
+  await switchToDocument(newDocumentId)
+  
+  // Save chat history after messages change
+  if (newDocumentId) {
+    await saveChatHistory(newDocumentId)
   }
 })
 
@@ -103,117 +114,54 @@ onBeforeUnmount(() => {
   }
 })
 
-// Open document when block reference is clicked
-const openDocument = (event: MouseEvent) => {
-  event.preventDefault()
-  const target = event.currentTarget as HTMLElement
-  const docId = target.getAttribute('data-id')
-  
-  if (docId) {
-    // Navigate to the block using SiYuan's block URL
-    window.location.href = `siyuan://blocks/${docId}`
-  }
-}
-
-// Check if settings are configured
+// Initialize on mount
 onMounted(async () => {
   await checkConfiguration()
 })
 
-const checkConfiguration = async () => {
-  try {
-    const settings = await plugin.getSettings()
-    isConfigured.value = !!(settings.ollamaUrl && settings.selectedModel)
-  } catch (error) {
-    console.error('Error checking configuration:', error)
-    isConfigured.value = false
+// Handle sending messages
+const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
+  if (event) {
+    event.preventDefault()
   }
-}
-
-const sendMessage = async () => {
-  if (!currentInput.value.trim()) {
+  
+  if (!currentInput.value.trim() || !isConfigured.value) {
     return
   }
 
   const userMessage = currentInput.value.trim()
   currentInput.value = ''
 
-  // Get document context if available
-  let documentContent: string | null = null
-  if (hasDocumentContext.value) {
-    try {
-      documentContent = await getCurrentDocumentContent()
-    } catch (error) {
-      console.error('Error getting document context:', error)
-    }
-  }
+  // Build contextual message
+  const { contextualMessage, systemMessage } = await buildContextualMessage(userMessage)
 
-  // Build the user message with context
-  let contextualMessage = userMessage
-  if (documentContent) {
-    contextualMessage = `Context from the current document:\n\n${documentContent}\n\n---\n\nUser question: ${userMessage}`
-  }
+  // Add user message to history
+  addMessage({ role: 'user', content: userMessage })
 
-  // Add user message to history (show the original question, not the context)
-  messages.value.push({
-    role: 'user',
-    content: userMessage
-  })
+  // Scroll to bottom
+  await nextTick()
+  scrollToBottom()
 
-  // Scroll to bottom after DOM update
+  // Scroll to show loading indicator
   await nextTick()
   scrollToBottom()
 
   try {
-    // Load settings
-    const settings = await plugin.getSettings()
-
-    if (!settings.ollamaUrl || !settings.selectedModel) {
-      isConfigured.value = false
-      return
+    // Send message via composable
+    await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+    
+    // Save chat history after receiving response
+    const currentDocId = documentContext.value.documentId || documentContext.value.blockId
+    if (currentDocId) {
+      await saveChatHistory(currentDocId)
     }
-
-    // Update configuration status
-    isConfigured.value = true
-
-    // Send message to Ollama with context
-    const messagesToSend = [...messages.value]
-    // Replace the last user message with the contextual version
-    if (documentContent) {
-      messagesToSend[messagesToSend.length - 1] = {
-        role: 'user',
-        content: contextualMessage
-      }
-    }
-
-    const response = await sendChatMessage(
-      settings.ollamaUrl,
-      settings.selectedModel,
-      messagesToSend,
-      settings.temperature
-    )
-
-    // Add assistant response to history
-    messages.value.push({
-      role: 'assistant',
-      content: response
-    })
-
-    // Scroll to bottom after DOM update
-    await nextTick()
-    scrollToBottom()
   } catch (error) {
-    console.error('Error sending message:', error)
-    pushErrMsg('Failed to send message. Please check your Ollama configuration.')
-    // Re-check configuration on error
-    await checkConfiguration()
+    // Error already handled in composable
   }
-}
-
-const scrollToBottom = () => {
-  if (historyContainer.value) {
-    historyContainer.value.scrollTop = historyContainer.value.scrollHeight
-  }
+  
+  // Scroll again after response
+  await nextTick()
+  scrollToBottom()
 }
 </script>
 
@@ -300,12 +248,6 @@ const scrollToBottom = () => {
 .block-ref {
   color: var(--b3-theme-primary);
   cursor: pointer;
-  text-decoration: underline;
-  transition: opacity 0.2s ease;
-  
-  &:hover {
-    opacity: 0.8;
-  }
 }
 
 .input-label {
@@ -356,6 +298,44 @@ const scrollToBottom = () => {
 .warning-message {
   font-size: 14px;
   color: var(--b3-theme-on-surface-light);
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  
+  span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--b3-theme-primary);
+    animation: typing 1.4s infinite;
+    
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
 }
 </style>
 

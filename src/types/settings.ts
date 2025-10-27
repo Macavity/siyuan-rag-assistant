@@ -19,4 +19,12 @@ export const DEFAULT_SETTINGS: RAGAssistantSettings = {
 }
 
 export const STORAGE_NAME = 'plugin-settings'
+export const CHAT_HISTORY_STORAGE = 'chat-history'
+
+export interface ChatHistory {
+  [documentId: string]: Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }>
+}
 
