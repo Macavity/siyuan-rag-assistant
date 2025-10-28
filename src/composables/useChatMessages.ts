@@ -7,11 +7,8 @@ import { ref, Ref, nextTick } from 'vue'
 import { sendChatMessage } from '@/services/ollama'
 import { pushErrMsg } from '@/api'
 import type RAGAssistantPlugin from '@/index'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
+import {Message} from "@/types/message.ts";
+import {buildAssistantMessage, buildUserMessage} from "@/utils/message-factory.ts";
 
 export function useChatMessages(plugin: RAGAssistantPlugin) {
   const isConfigured: Ref<boolean> = ref(false)
@@ -37,7 +34,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
   const sendMessage = async (
     userMessage: string,
     contextualMessage: string,
-    systemMessage: { role: 'system', content: string } | null,
+    systemMessage: Message | null,
     messages: Ref<Message[]>
   ) => {
     isLoading.value = true
@@ -54,14 +51,11 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
       isConfigured.value = true
 
       // Send message to Ollama with context
-      const messagesToSend: Array<{ role: 'user' | 'assistant' | 'system', content: string }> = [...messages.value]
+      const messagesToSend: Message[] = [...messages.value]
 
       // Replace the last user message with the contextual version
       if (contextualMessage !== userMessage) {
-        messagesToSend[messagesToSend.length - 1] = {
-          role: 'user',
-          content: contextualMessage
-        }
+        messagesToSend[messagesToSend.length - 1] = buildUserMessage(userMessage);
 
         // Add system message at the start if this is a new conversation with context
         const hasSystemMessage = messagesToSend.some(msg => msg.role === 'system')
@@ -78,10 +72,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
       )
 
       // Add assistant response to history
-      messages.value.push({
-        role: 'assistant',
-        content: response
-      })
+      messages.value.push(buildAssistantMessage(response))
 
       // Scroll to bottom after DOM update
       await nextTick()

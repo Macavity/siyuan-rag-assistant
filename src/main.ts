@@ -2,6 +2,7 @@ import {
   Plugin,
 } from "siyuan";
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 
 let plugin = null
@@ -28,6 +29,11 @@ export function init(pluginInstance: Plugin) {
   div.classList.toggle('plugin-ra-vue-app')
   div.id = 'siyuan-rag-assistant'
   app = createApp(App)
+  
+  // Setup Pinia
+  const pinia = createPinia()
+  app.use(pinia)
+  
   app.mount(div)
   document.body.appendChild(div)
 }

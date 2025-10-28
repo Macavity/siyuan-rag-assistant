@@ -11,14 +11,14 @@
 
     <!-- Chat History Area -->
     <div class="chat-history" ref="historyContainer">
-      <div 
-        v-for="(message, index) in messages" 
-        :key="index" 
+      <div
+        v-for="(message, index) in messages"
+        :key="index"
         :class="['message', message.role]"
       >
         <div class="message-content" v-html="formatMessage(message.content)"></div>
       </div>
-      
+
       <!-- Loading indicator -->
       <div v-if="isLoading" class="message assistant">
         <div class="message-content">
@@ -52,13 +52,18 @@ import InputArea from './InputArea.vue'
 import { usePlugin } from '@/main'
 import RAGAssistantPlugin from '@/index'
 import { useChatHistory } from '@/composables/useChatHistory'
-import { useDocumentContext, buildSystemMessage } from '@/composables/useDocumentContext'
+import { useDocumentContext } from '@/composables/useDocumentContext'
 import { useChatMessages } from '@/composables/useChatMessages'
+import {
+  buildContextFreeSystemMessage,
+  buildContextualSystemMessage,
+  buildUserMessage
+} from "@/utils/message-factory.ts";
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
 // Initialize composables
-const { messages, switchToDocument, addMessage, saveChatHistory, clearHistory } = useChatHistory(plugin)
+const { messages, switchToDocument, addMessageToHistory, saveChatHistory, clearHistory } = useChatHistory(plugin)
 const { hasDocumentContext, documentName, documentContext, buildContextualMessage, initDocumentContext } = useDocumentContext()
 const { isConfigured, isLoading, historyContainer, checkConfiguration, sendMessage, scrollToBottom } = useChatMessages(plugin)
 
@@ -73,10 +78,10 @@ const formatMessage = (content: string) => {
 // Handle document context changes
 const unsubscribe = initDocumentContext(async (context) => {
   const newDocumentId = context.documentId || context.blockId
-  
+
   // Switch to the new document's chat history
   await switchToDocument(newDocumentId)
-  
+
   // Save chat history after messages change
   if (newDocumentId) {
     await saveChatHistory(newDocumentId)
@@ -127,7 +132,7 @@ const handleClearHistory = async () => {
     if (event) {
       event.preventDefault()
     }
-    
+
     if (!currentInput.value.trim() || !isConfigured.value) {
       return
     }
@@ -140,17 +145,16 @@ const handleClearHistory = async () => {
 
     // If context-free mode, use general system message and user message as-is
     let contextualMessage = userMessage
-    let systemMessage = buildSystemMessage(settings)
-    
+    let systemMessage = buildContextFreeSystemMessage();
+
     // If context-aware mode, build contextual message with document content
     if (!settings?.contextFree) {
-      const result = await buildContextualMessage(userMessage, settings)
-      contextualMessage = result.contextualMessage
-      systemMessage = result.systemMessage
+      systemMessage = buildContextualSystemMessage();
+      contextualMessage = await buildContextualMessage(userMessage, settings);
     }
 
     // Add user message to history
-    addMessage({ role: 'user', content: userMessage })
+    addMessageToHistory(buildUserMessage(userMessage))
 
     // Scroll to bottom
     await nextTick()
@@ -159,7 +163,7 @@ const handleClearHistory = async () => {
     try {
       // Send message via composable
       await sendMessage(userMessage, contextualMessage, systemMessage, messages)
-      
+
       // Save chat history after receiving response
       const currentDocId = documentContext.value.documentId || documentContext.value.blockId
       if (currentDocId) {
@@ -168,7 +172,7 @@ const handleClearHistory = async () => {
     } catch (error) {
       // Error already handled in composable
     }
-    
+
     // Scroll again after response
     await nextTick()
     scrollToBottom()
@@ -196,10 +200,10 @@ const handleClearHistory = async () => {
 .message {
   display: flex;
   flex-direction: column;
-  
+
   &.user {
     align-items: flex-end;
-    
+
     .message-content {
       background-color: var(--b3-theme-primary);
       color: var(--b3-theme-on-primary);
@@ -210,10 +214,10 @@ const handleClearHistory = async () => {
       user-select: text;
     }
   }
-  
+
   &.assistant {
     align-items: flex-start;
-    
+
     .message-content {
       background-color: var(--b3-theme-surface-lighter);
       color: var(--b3-theme-on-surface);
@@ -261,22 +265,22 @@ const handleClearHistory = async () => {
   align-items: center;
   gap: 4px;
   padding: 8px 0;
-  
+
   span {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background-color: var(--b3-theme-primary);
     animation: typing 1.4s infinite;
-    
+
     &:nth-child(1) {
       animation-delay: 0s;
     }
-    
+
     &:nth-child(2) {
       animation-delay: 0.2s;
     }
-    
+
     &:nth-child(3) {
       animation-delay: 0.4s;
     }

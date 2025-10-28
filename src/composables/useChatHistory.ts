@@ -5,11 +5,7 @@
 
 import { ref, Ref } from 'vue'
 import { CHAT_HISTORY_STORAGE, type ChatHistory } from '@/types/settings'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
+import {Message} from "@/types/message.ts";
 
 export function useChatHistory(plugin: any) {
   const messages: Ref<Message[]> = ref([])
@@ -70,7 +66,7 @@ export function useChatHistory(plugin: any) {
   /**
    * Add a message to the current chat history
    */
-  const addMessage = (message: Message) => {
+  const addMessageToHistory = (message: Message) => {
     messages.value.push(message)
   }
 
@@ -87,7 +83,7 @@ export function useChatHistory(plugin: any) {
     loadChatHistory,
     saveChatHistory,
     switchToDocument,
-    addMessage,
+    addMessageToHistory,
     clearHistory
   }
 }

@@ -1,3 +1,5 @@
+import {Message} from "@/types/message.ts";
+
 /**
  * Settings interface for the RAG Assistant plugin
  */
@@ -24,9 +26,6 @@ export const STORAGE_NAME = 'plugin-settings'
 export const CHAT_HISTORY_STORAGE = 'chat-history'
 
 export interface ChatHistory {
-  [documentId: string]: Array<{
-    role: 'user' | 'assistant'
-    content: string
-  }>
+  [documentId: string]: Message[];
 }
 
