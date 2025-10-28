@@ -52,7 +52,7 @@ import InputArea from './InputArea.vue'
 import { usePlugin } from '@/main'
 import RAGAssistantPlugin from '@/index'
 import { useChatHistory } from '@/composables/useChatHistory'
-import { useDocumentContext } from '@/composables/useDocumentContext'
+import { useDocumentContext, buildSystemMessage } from '@/composables/useDocumentContext'
 import { useChatMessages } from '@/composables/useChatMessages'
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
@@ -138,8 +138,16 @@ const handleClearHistory = async () => {
     // Get settings
     const settings = await plugin.getSettings()
 
-    // Build contextual message
-    const { contextualMessage, systemMessage } = await buildContextualMessage(userMessage, settings)
+    // If context-free mode, use general system message and user message as-is
+    let contextualMessage = userMessage
+    let systemMessage = buildSystemMessage(settings)
+    
+    // If context-aware mode, build contextual message with document content
+    if (!settings?.contextFree) {
+      const result = await buildContextualMessage(userMessage, settings)
+      contextualMessage = result.contextualMessage
+      systemMessage = result.systemMessage
+    }
 
     // Add user message to history
     addMessage({ role: 'user', content: userMessage })

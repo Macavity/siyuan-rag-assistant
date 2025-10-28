@@ -31,16 +31,9 @@ export function updateDocumentContext(documentId?: string, blockId?: string, doc
     documentName: documentName || null,
     lastUpdateTime: Date.now()
   }
-  
+
   // Notify all subscribers
   subscribers.forEach(sub => sub(documentContext))
-}
-
-/**
- * Get the current document context
- */
-export function getCurrentDocumentContext(): DocumentContext {
-  return { ...documentContext }
 }
 
 /**
@@ -48,7 +41,7 @@ export function getCurrentDocumentContext(): DocumentContext {
  */
 export function subscribeToDocumentContext(callback: (context: DocumentContext) => void) {
   subscribers.push(callback)
-  
+
   // Return unsubscribe function
   return () => {
     const index = subscribers.indexOf(callback)
@@ -63,32 +56,32 @@ export function subscribeToDocumentContext(callback: (context: DocumentContext) 
  */
 export async function getCurrentDocumentContent(): Promise<string | null> {
   const { documentId, blockId } = documentContext
-  
+
   if (!documentId && !blockId) {
     return null
   }
 
   try {
     let actualDocumentId = documentId
-    
+
     // If we have a document ID, use it directly
     if (documentId) {
       const result = await exportMdContent(documentId)
       return result?.content || null
     }
-    
+
     // If we only have a block ID, try to resolve the root document ID from the block
     if (blockId && !documentId) {
       try {
         const block = await getBlockByID(blockId)
         actualDocumentId = block?.root_id || blockId
-        
+
         // If we got a valid root_id, export the full document
         if (actualDocumentId && actualDocumentId !== blockId) {
           const result = await exportMdContent(actualDocumentId)
           return result?.content || null
         }
-        
+
         // Otherwise, just get the kramdown for this specific block
         const result = await getBlockKramdown(blockId)
         return result?.kramdown || null
@@ -103,7 +96,7 @@ export async function getCurrentDocumentContent(): Promise<string | null> {
     console.error('Error getting document content:', error)
     return null
   }
-  
+
   return null
 }
 
@@ -121,7 +114,7 @@ export async function getSubDocumentsContent(
 
   try {
     const result = await listDocsByPath(notebookId, path)
-    
+
     if (!result?.files || result.files.length === 0) {
       return null
     }
