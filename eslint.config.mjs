@@ -35,6 +35,18 @@ export default antfu(
     },
   },
   {
+    plugins: {
+      'i18n-validate': i18nPlugin,
+    },
+    files: [
+      'src/**/*.ts',
+      'src/**/*.vue',
+    ],
+    rules: {
+      'i18n-validate/missingKey': 'error',
+    },
+  },
+  {
     rules: {
       'antfu/top-level-function': 'off',
       'antfu/if-newline': 'off',

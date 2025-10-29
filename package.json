@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "test": "vitest",
+    "lint": "eslint",
     "make-link": "node --no-warnings ./scripts/make_dev_link.js",
     "make-link-win": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/elevate.ps1 -scriptPath ./scripts/make_dev_link.js",
     "update-version": "node --no-warnings ./scripts/update_version.js",
