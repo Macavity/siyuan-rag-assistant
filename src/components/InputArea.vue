@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import StealthTextarea from './SiyuanTheme/StealthTextarea.vue'
 import SyIconButton from './SiyuanTheme/SyIconButton.vue'
-import DocumentReference from './SiyuanTheme/DocumentReference.vue'
+import DocumentReference from './DocumentReference.vue'
 
 defineProps<{
   modelValue: string

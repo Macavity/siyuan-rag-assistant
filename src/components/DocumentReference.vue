@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import SyIcon from './SyIcon.vue'
+import SyIcon from './SiyuanTheme/SyIcon.vue'
 
 defineProps<{
   id: string

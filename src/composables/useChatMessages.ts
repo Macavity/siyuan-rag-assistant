@@ -3,7 +3,7 @@
  * Handles message sending, configuration checking, and error handling
  */
 
-import { ref, Ref, nextTick } from 'vue'
+import { ref, Ref } from 'vue'
 import { sendChatMessage } from '@/services/ollama'
 import { pushErrMsg } from '@/api'
 import type RAGAssistantPlugin from '@/index'
@@ -13,7 +13,6 @@ import {buildUserMessage} from "@/utils/message-factory.ts";
 export function useChatMessages(plugin: RAGAssistantPlugin) {
   const isConfigured: Ref<boolean> = ref(false)
   const isLoading: Ref<boolean> = ref(false)
-  const historyContainer: Ref<HTMLDivElement | undefined> = ref()
 
   /**
    * Check if plugin is configured with Ollama settings
@@ -72,10 +71,6 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
         settings.temperature
       )
 
-      // Scroll to bottom after DOM update
-      await nextTick()
-      scrollToBottom()
-
       return response
     } catch (error) {
       console.error('Error sending message:', error)
@@ -87,21 +82,10 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
     }
   }
 
-  /**
-   * Scroll chat history to bottom
-   */
-  const scrollToBottom = () => {
-    if (historyContainer.value) {
-      historyContainer.value.scrollTop = historyContainer.value.scrollHeight
-    }
-  }
-
   return {
     isConfigured,
     isLoading,
-    historyContainer,
     checkConfiguration,
-    sendMessage,
-    scrollToBottom
+    sendMessage
   }
 }

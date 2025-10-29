@@ -134,6 +134,18 @@ export function useChatHistory(plugin: any) {
     debouncedSave(currentDocumentId.value)
   }
 
+  /**
+   * Remove messages from a given index onwards
+   * Used for rewriting responses
+   */
+  const removeMessagesFromIndex = (index: number) => {
+    if (index >= 0 && index < messages.value.length) {
+      messages.value = messages.value.slice(0, index)
+      // Trigger debounced save
+      debouncedSave(currentDocumentId.value)
+    }
+  }
+
   return {
     messages,
     currentDocumentId,
@@ -141,6 +153,7 @@ export function useChatHistory(plugin: any) {
     saveChatHistory,
     switchToDocument,
     addMessageToHistory,
-    clearHistory
+    clearHistory,
+    removeMessagesFromIndex
   }
 }
