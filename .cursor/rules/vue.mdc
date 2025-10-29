@@ -13,6 +13,10 @@ Code Style and Structure
 - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
 - Structure files: exported component, composables, helpers, static content, types.
 
+Best Practices
+- adhere to Single responsibility principle
+- adhere to SOLID development 
+
 Naming Conventions
 - Use lowercase with dashes for directories (e.g., components/auth-wizard).
 - Use PascalCase for component names (e.g., AuthWizard.vue).

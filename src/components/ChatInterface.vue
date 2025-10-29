@@ -57,13 +57,14 @@ import { useChatMessages } from '@/composables/useChatMessages'
 import {
   buildContextFreeSystemMessage,
   buildContextualSystemMessage,
-  buildUserMessage
+  buildUserMessage,
+  buildAssistantMessage
 } from "@/utils/message-factory.ts";
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
 // Initialize composables
-const { messages, switchToDocument, addMessageToHistory, saveChatHistory, clearHistory } = useChatHistory(plugin)
+const { messages, switchToDocument, addMessageToHistory, clearHistory } = useChatHistory(plugin)
 const { hasDocumentContext, documentName, documentContext, buildContextualMessage, initDocumentContext } = useDocumentContext()
 const { isConfigured, isLoading, historyContainer, checkConfiguration, sendMessage, scrollToBottom } = useChatMessages(plugin)
 
@@ -75,16 +76,19 @@ const formatMessage = (content: string) => {
   return content.replace(/\n/g, '<br>')
 }
 
+// Track the last document ID to prevent unnecessary switches
+let lastDocumentId: string | null = null
+
 // Handle document context changes
 const unsubscribe = initDocumentContext(async (context) => {
   const newDocumentId = context.documentId || context.blockId
 
-  // Switch to the new document's chat history
-  await switchToDocument(newDocumentId)
-
-  // Save chat history after messages change
-  if (newDocumentId) {
-    await saveChatHistory(newDocumentId)
+  // Only switch if the document actually changed
+  if (newDocumentId !== lastDocumentId) {
+    // Switch to the new document's chat history
+    // switchToDocument already handles saving the previous document and loading the new one
+    await switchToDocument(newDocumentId)
+    lastDocumentId = newDocumentId
   }
 })
 
@@ -96,6 +100,13 @@ onBeforeUnmount(() => {
 
 // Initialize on mount
 onMounted(async () => {
+  // Initialize with current document context if available
+  const currentDocId = documentContext.value.documentId || documentContext.value.blockId
+  if (currentDocId && !lastDocumentId) {
+    lastDocumentId = currentDocId
+    await switchToDocument(currentDocId)
+  }
+  
   await checkConfiguration()
   scrollToBottom()
 })
@@ -119,12 +130,9 @@ const handleDocumentClick = () => {
 }
 
 // Handle clear history button click
-const handleClearHistory = async () => {
-  const currentDocId = documentContext.value.documentId || documentContext.value.blockId
-  if (currentDocId) {
-    clearHistory()
-    await saveChatHistory(currentDocId)
-  }
+const handleClearHistory = () => {
+  clearHistory()
+  // History is automatically saved by clearHistory via debounced save
 }
 
   // Handle sending messages
@@ -162,13 +170,10 @@ const handleClearHistory = async () => {
 
     try {
       // Send message via composable
-      await sendMessage(userMessage, contextualMessage, systemMessage, messages)
-
-      // Save chat history after receiving response
-      const currentDocId = documentContext.value.documentId || documentContext.value.blockId
-      if (currentDocId) {
-        await saveChatHistory(currentDocId)
-      }
+      const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+      
+      // Add assistant response to history (auto-saves via debounced save)
+      addMessageToHistory(buildAssistantMessage(response))
     } catch (error) {
       // Error already handled in composable
     }

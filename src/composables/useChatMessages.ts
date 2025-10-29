@@ -8,7 +8,7 @@ import { sendChatMessage } from '@/services/ollama'
 import { pushErrMsg } from '@/api'
 import type RAGAssistantPlugin from '@/index'
 import {Message} from "@/types/message.ts";
-import {buildAssistantMessage, buildUserMessage} from "@/utils/message-factory.ts";
+import {buildUserMessage} from "@/utils/message-factory.ts";
 
 export function useChatMessages(plugin: RAGAssistantPlugin) {
   const isConfigured: Ref<boolean> = ref(false)
@@ -30,13 +30,14 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
 
   /**
    * Send a chat message with optional context
+   * Returns the assistant's response text
    */
   const sendMessage = async (
     userMessage: string,
     contextualMessage: string,
     systemMessage: Message | null,
     messages: Ref<Message[]>
-  ) => {
+  ): Promise<string> => {
     isLoading.value = true
     try {
       // Load settings
@@ -44,7 +45,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
 
       if (!settings.ollamaUrl || !settings.selectedModel) {
         isConfigured.value = false
-        return
+        throw new Error('Ollama URL or model not configured')
       }
 
       // Update configuration status
@@ -53,9 +54,9 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
       // Send message to Ollama with context
       const messagesToSend: Message[] = [...messages.value]
 
-      // Replace the last user message with the contextual version
+      // Replace the last user message with the contextual version if it differs
       if (contextualMessage !== userMessage) {
-        messagesToSend[messagesToSend.length - 1] = buildUserMessage(userMessage);
+        messagesToSend[messagesToSend.length - 1] = buildUserMessage(contextualMessage);
 
         // Add system message at the start if this is a new conversation with context
         const hasSystemMessage = messagesToSend.some(msg => msg.role === 'system')
@@ -70,9 +71,6 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
         messagesToSend,
         settings.temperature
       )
-
-      // Add assistant response to history
-      messages.value.push(buildAssistantMessage(response))
 
       // Scroll to bottom after DOM update
       await nextTick()

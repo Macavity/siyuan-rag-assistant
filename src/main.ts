@@ -4,15 +4,15 @@ import {
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import { LOG_PREFIX } from "./constants";
 
 let plugin = null
 export function usePlugin(pluginProps?: Plugin): Plugin {
-  console.log('usePlugin', pluginProps, plugin)
   if (pluginProps) {
     plugin = pluginProps
   }
   if (!plugin && !pluginProps) {
-    console.error('need bind plugin')
+    console.error(LOG_PREFIX, 'need bind plugin')
   }
   return plugin;
 }

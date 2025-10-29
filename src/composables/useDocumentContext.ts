@@ -20,9 +20,9 @@ export function useDocumentContext() {
    */
   const getCurrentDocumentContent = async (): Promise<string | null> => {
     const context = store.getDocumentContext()
-    const {documentId, blockId} = context
+    const {documentId } = context
 
-    console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'Starting with context:', {documentId, blockId})
+    console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'Starting with context:', {documentId})
 
     if (!documentId) {
       console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'No documentId, returning null')
@@ -90,7 +90,7 @@ export function useDocumentContext() {
 
         // Get sub-documents if the setting is enabled
         const context = store.getDocumentContext()
-        const docId = context.documentId || context.blockId
+        const docId = context.documentId
         if (settings.includeSubDocuments && docId) {
           try {
             const block = await getBlockData(docId)
@@ -154,16 +154,22 @@ Answer directly based ONLY on the document provided above.`
    * Initialize document context subscription (now using Pinia reactivity)
    */
   const initDocumentContext = (onContextChange: (context: any) => void) => {
-    // Call the callback with the current context immediately
-    const currentContext = store.getDocumentContext()
-    onContextChange(currentContext)
-
+    // Track the last context to prevent duplicate callbacks
+    let lastContext = store.getDocumentContext()
+    
     // Watch for changes in the document context store
     // Watch the documentContext ref directly for reactivity
     const stopWatcher = watch(
       () => store.documentContext,
       (newContext) => {
-        onContextChange(newContext)
+        // Only trigger if documentId actually changed
+        const newDocId = newContext.documentId
+        const lastDocId = lastContext.documentId
+        
+        if (newDocId !== lastDocId) {
+          lastContext = { ...newContext }
+          onContextChange(newContext)
+        }
       },
       { deep: true }
     )

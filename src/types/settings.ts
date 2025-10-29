@@ -22,9 +22,6 @@ export const DEFAULT_SETTINGS: RAGAssistantSettings = {
   includeSubDocuments: false,
 }
 
-export const STORAGE_NAME = 'plugin-settings'
-export const CHAT_HISTORY_STORAGE = 'chat-history'
-
 export interface ChatHistory {
   [documentId: string]: Message[];
 }
