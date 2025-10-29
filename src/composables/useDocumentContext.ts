@@ -2,102 +2,138 @@
  * Composable for managing document context integration with chat
  * Handles document switching, context retrieval, and UI state
  */
-
-import { ref, Ref } from 'vue'
-import { subscribeToDocumentContext, getCurrentDocumentContent, getSubDocumentsContent } from '@/utils/document-context'
-import { getBlockByID } from '@/api'
-import type { RAGAssistantSettings } from '@/types/settings'
+import {computed, watch} from 'vue'
+import {useDocumentContextStore} from '@/stores/document-context'
+import {getBlockData, getDocumentMarkdown, listDirectoryDocuments} from '@/utils/document-helpers'
+import type {RAGAssistantSettings} from '@/types/settings'
+import {LOG_PREFIX} from '@/constants'
 
 export function useDocumentContext() {
-  const hasDocumentContext: Ref<boolean> = ref(false)
-  const documentName: Ref<string> = ref('')
-  const documentContext: Ref<any> = ref({})
+  const store = useDocumentContextStore()
+
+  const hasDocumentContext = computed(() => store.hasDocumentContext)
+  const documentName = computed(() => store.documentName)
+  const documentContext = computed(() => store.getDocumentContext())
+
+  /**
+   * Get the current document content with business logic to handle documentId vs blockId
+   */
+  const getCurrentDocumentContent = async (): Promise<string | null> => {
+    const context = store.getDocumentContext()
+    const {documentId } = context
+
+    console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'Starting with context:', {documentId})
+
+    if (!documentId) {
+      console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'No documentId, returning null')
+      return null
+    }
+
+    return await getDocumentMarkdown(documentId)
+  }
+
+  /**
+   * Get sub-document content with business logic
+   */
+  const getSubDocumentsContent = async (
+    notebookId: string,
+    path: string,
+    includeSubDocuments: boolean
+  ): Promise<string | null> => {
+    if (!includeSubDocuments) {
+      return null
+    }
+
+    try {
+      const result = await listDirectoryDocuments(notebookId, path)
+
+      if (!result?.files || result.files.length === 0) {
+        return null
+      }
+
+      const subDocumentsContent: string[] = []
+
+      // Fetch content for each sub-document
+      for (const file of result.files) {
+        try {
+          const content = await getDocumentMarkdown(file.id)
+          if (content) {
+            const subDocumentHeadline = file.name ? `## Sub-Document ${file.name}:` : `## Sub-Document Content:`;
+            subDocumentsContent.push(`${subDocumentHeadline}\n${content}`);
+          }
+        } catch (error) {
+          console.error(LOG_PREFIX, 'getSubDocumentsContent', `Error fetching content for ${file.id}:`, error)
+        }
+      }
+
+      if (subDocumentsContent.length <= 0) {
+        return null
+      }
+
+      return subDocumentsContent.join('\n\n---\n\n')
+    } catch (error) {
+      console.error(LOG_PREFIX, 'getSubDocumentsContent', 'Error getting sub-documents content:', error)
+      return null
+    }
+  }
+
+  /**
+   * Get document-related content (main document + sub-documents)
+   */
+  const getDocumentAndSubDocumentsContent = async (settings: RAGAssistantSettings) => {
+    let documentContent: string | null = null
+    let subDocumentsContent: string | null = null
+
+    if (store.hasDocumentContext) {
+      try {
+        documentContent = await getCurrentDocumentContent()
+
+        // Get sub-documents if the setting is enabled
+        const context = store.getDocumentContext()
+        const docId = context.documentId
+        if (settings.includeSubDocuments && docId) {
+          try {
+            const block = await getBlockData(docId)
+            if (block?.path && block?.box) {
+              subDocumentsContent = await getSubDocumentsContent(block.box, block.path, true)
+            }
+          } catch (error) {
+            console.error(LOG_PREFIX, 'getDocumentAndSubDocumentsContent', 'Error getting sub-documents:', error)
+          }
+        }
+      } catch (error) {
+        console.error(LOG_PREFIX, 'getDocumentAndSubDocumentsContent', 'Error getting document context:', error)
+      }
+    }
+
+    return {documentContent, subDocumentsContent}
+  }
 
   /**
    * Build contextual message with document content
    */
-  const buildContextualMessage = async (userMessage: string, settings?: RAGAssistantSettings) => {
-    let documentContent: string | null = null
-    let subDocumentsContent: string | null = null
-    
-    if (hasDocumentContext.value) {
-      try {
-        documentContent = await getCurrentDocumentContent()
-        
-        // Get sub-documents if the setting is enabled
-        const docId = documentContext.value.documentId || documentContext.value.blockId
-        if (settings?.includeSubDocuments && docId) {
-          try {
-            const block = await getBlockByID(docId)
-            if (block?.path && block?.box) {
-              
-              subDocumentsContent = await getSubDocumentsContent(block.box, block.path, true)
-            }
-          } catch (error) {
-            console.error('Error getting sub-documents:', error)
-          }
-        }
-      } catch (error) {
-        console.error('Error getting document context:', error)
-      }
+  const buildContextualMessage = async (userMessage: string, settings: RAGAssistantSettings) => {
+    const {documentContent, subDocumentsContent} = await getDocumentAndSubDocumentsContent(settings)
+
+    if (!documentContent && !subDocumentsContent) {
+      return userMessage
     }
 
-    let contextualMessage = userMessage
-    let systemMessage: { role: 'system', content: string } | null = null
+    let fullContent = documentContent || ''
 
-    if (documentContent || subDocumentsContent) {
-      // Set a system message to establish the behavior
-      systemMessage = {
-        role: 'system',
-        content: `You are an AI assistant helping with a specific document written in Markdown format. Answer ONLY questions that can be answered using the provided document context.
+    // Append sub-documents if available
+    if (subDocumentsContent) {
+      fullContent += '\n\n# Sub Documents\n\n' + subDocumentsContent
+    }
 
-CRITICAL ANTI-HALLUCINATION RULES:
-1. NEVER make up or infer information not explicitly present in the document
-2. NEVER speculate or assume details not in the document
-3. If a question asks about something NOT in the provided document, respond with: "Not found in the document"
-4. If you cannot find the requested information in the document, state "Not found in the document" - do not invent or guess
-5. Do NOT assume information based on document patterns - only use explicit information
-6. If the question references a different document or external information, say "Not found in the document"
-
-EXAMPLES OF HANDLING MISSING INFORMATION:
-- User asks about "document X" but you only have "document Y" → "Not found in the document"
-- User asks about data not in the document → "Not found in the document"
-- User asks about a topic the document doesn't cover → "Not found in the document"
-
-DIRECT ANSWER STYLE:
-- Answer DIRECTLY and concisely - no disclaimers, no preamble
-- No meta-commentary like "based on the context provided"
-- Simply state facts when information exists, or "Not found in the document" when it doesn't
-
-MARKDOWN SYNTAX:
-- Tasks: "- [ ]" = open task, "- [x]" = completed task
-- Count open tasks by looking for lines starting with "- [ ]"
-- Headers: # for h1, ## for h2, ### for h3
-- Lists: "-" for unordered, numbers for ordered
-- Links: [text](url) or #TagName
-- Text: **bold**, *italic*, \`code\`
-
-Be honest: if information isn't in the document, say so. Never make things up.`
-      }
-
-      let fullContent = documentContent || ''
-      
-      // Append sub-documents if available
-      if (subDocumentsContent) {
-        fullContent += '\n\n# Sub Documents\n\n' + subDocumentsContent
-      }
-
-      contextualMessage = `Document Content:
-"""      
+    return `Document Content:
+"""
 ${fullContent}
 """
 ---
 Question: ${userMessage}
 
 Answer directly based ONLY on the document provided above.`
-    }
-
-    return { contextualMessage, systemMessage }
   }
 
   /**
@@ -115,24 +151,33 @@ Answer directly based ONLY on the document provided above.`
   }
 
   /**
-   * Initialize document context subscription
+   * Initialize document context subscription (now using Pinia reactivity)
    */
   const initDocumentContext = (onContextChange: (context: any) => void) => {
-    return subscribeToDocumentContext((context) => {
-      console.log('Document context updated:', context)
+    // Track the last context to prevent duplicate callbacks
+    let lastContext = store.getDocumentContext()
+    
+    // Watch for changes in the document context store
+    // Watch the documentContext ref directly for reactivity
+    const stopWatcher = watch(
+      () => store.documentContext,
+      (newContext) => {
+        // Only trigger if documentId actually changed
+        const newDocId = newContext.documentId
+        const lastDocId = lastContext.documentId
+        
+        if (newDocId !== lastDocId) {
+          lastContext = { ...newContext }
+          onContextChange(newContext)
+        }
+      },
+      { deep: true }
+    )
 
-      hasDocumentContext.value = !!(context.documentId || context.blockId)
-      if (hasDocumentContext.value) {
-        documentName.value = context.documentName || 'Current Document'
-      } else {
-        documentName.value = ''
-      }
-
-      documentContext.value = context
-
-      // Call the provided callback
-      onContextChange(context)
-    })
+    // Return unsubscribe function
+    return () => {
+      stopWatcher()
+    }
   }
 
   return {
@@ -144,3 +189,5 @@ Answer directly based ONLY on the document provided above.`
     initDocumentContext
   }
 }
+
+

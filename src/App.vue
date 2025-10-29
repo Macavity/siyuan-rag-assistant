@@ -4,7 +4,6 @@ import { createApp } from 'vue'
 import ChatInterface from '@/components/ChatInterface.vue'
 
 const plugin = usePlugin()
-console.log('plugin is ', plugin)
 
 let chatApp: any = null
 let chatDiv: HTMLDivElement | null = null

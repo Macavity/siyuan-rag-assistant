@@ -1,4 +1,5 @@
 import { forwardProxy, pushErrMsg } from '@/api'
+import { LOG_PREFIX } from '@/constants'
 
 export interface OllamaModel {
   name: string
@@ -91,6 +92,10 @@ export async function sendChatMessage(
       messages,
       temperature,
       stream: false
+    }
+
+    if(import.meta.env.MODE === 'development') {
+      console.log(LOG_PREFIX, 'Sending chat message to Ollama:', messages)
     }
 
     const response = await forwardProxy(url, 'POST', payload, [], 60000, 'application/json')

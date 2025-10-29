@@ -17,31 +17,31 @@ export default defineConfig(({
   mode,
 }) => {
 
-  console.log('mode=>', mode)
+  console.log('mode =>', mode)
   const env = loadEnv(mode, process.cwd())
   const {
     VITE_SIYUAN_WORKSPACE_PATH,
   } = env
-  console.log('env=>', env)
+  console.log('env =>', env)
 
 
   const siyuanWorkspacePath = VITE_SIYUAN_WORKSPACE_PATH
   let devDistDir = './dev'
   if (!siyuanWorkspacePath) {
-    console.log("\nSiyuan workspace path is not set.")
+    console.log("Siyuan workspace path is not set.")
   } else {
-    console.log(`\nSiyuan workspace path is set:\n${siyuanWorkspacePath}`)
+    console.log(`Siyuan workspace path is set:\n${siyuanWorkspacePath}`)
     devDistDir = `${siyuanWorkspacePath}/data/plugins/${pluginInfo.name}`
   }
-  console.log(`\nPlugin will build to:\n${devDistDir}`)
+  console.log(`Plugin will build to: ${devDistDir}`)
 
   const args = minimist(process.argv.slice(2))
   const isWatch = args.watch || args.w || false
   const distDir = isWatch ? devDistDir : "./dist"
 
   console.log()
-  console.log("isWatch=>", isWatch)
-  console.log("distDir=>", distDir)
+  console.log("isWatch =>", isWatch)
+  console.log("distDir =>", distDir)
 
   return {
     resolve: {
