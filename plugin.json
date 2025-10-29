@@ -2,7 +2,7 @@
   "name": "siyuan-rag-assistant",
   "author": "Alexander Pape",
   "url": "https://github.com/Macavity/siyuan-rag-assistant",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minAppVersion": "2.10.14",
   "disabledInPublish": true,
   "backends": [
