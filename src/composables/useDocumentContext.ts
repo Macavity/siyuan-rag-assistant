@@ -2,7 +2,7 @@
  * Composable for managing document context integration with chat
  * Handles document switching, context retrieval, and UI state
  */
-import {computed} from 'vue'
+import {computed, watch} from 'vue'
 import {useDocumentContextStore} from '@/stores/document-context'
 import {getBlockData, getDocumentMarkdown, listDirectoryDocuments} from '@/utils/document-helpers'
 import type {RAGAssistantSettings} from '@/types/settings'
@@ -154,13 +154,23 @@ Answer directly based ONLY on the document provided above.`
    * Initialize document context subscription (now using Pinia reactivity)
    */
   const initDocumentContext = (onContextChange: (context: any) => void) => {
-    // With Pinia, we just call the callback with the current context
+    // Call the callback with the current context immediately
     const currentContext = store.getDocumentContext()
     onContextChange(currentContext)
 
-    // Return a no-op unsubscribe function for compatibility
+    // Watch for changes in the document context store
+    // Watch the documentContext ref directly for reactivity
+    const stopWatcher = watch(
+      () => store.documentContext,
+      (newContext) => {
+        onContextChange(newContext)
+      },
+      { deep: true }
+    )
+
+    // Return unsubscribe function
     return () => {
-      // Pinia handles reactivity automatically
+      stopWatcher()
     }
   }
 
