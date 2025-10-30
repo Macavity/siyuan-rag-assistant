@@ -17,8 +17,8 @@ defineProps<{
 }>()
 
 defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'keydown', event: KeyboardEvent): void
+  (e: "update:modelValue", value: string): void
+  (e: "keydown", event: KeyboardEvent): void
 }>()
 </script>
 
@@ -34,21 +34,20 @@ defineEmits<{
   color: var(--b3-theme-on-surface);
   outline: none;
   resize: none;
-  
+
   &:focus {
     border: none !important;
     outline: none !important;
     box-shadow: none;
   }
-  
+
   &::placeholder {
     color: var(--b3-theme-on-surface-light);
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
 }
 </style>
-

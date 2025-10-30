@@ -3,17 +3,17 @@
   <div class="input-area-wrapper">
     <!-- Document button at top -->
     <div class="input-area-header">
-      <DocumentReference 
-        v-if="hasDocumentContext && (documentContext.documentId || documentContext.blockId)"
-        :id="documentContext.documentId || documentContext.blockId"
+      <DocumentReference
+        v-if="hasDocumentContext && documentContext.documentId"
+        :id="documentContext.documentId"
         :title="documentName"
         @click="handleDocumentClick"
       />
     </div>
-    
+
     <!-- Input field with border -->
     <div class="input-field-container">
-      <StealthTextarea 
+      <StealthTextarea
         :model-value="modelValue"
         placeholder="Your prompt here..."
         :disabled="!isConfigured || isLoading"
@@ -21,56 +21,57 @@
         @keydown="handleKeydown"
       />
     </div>
-    
+
     <!-- Footer with clear and send buttons -->
     <div class="input-area-footer">
-      <SyIconButton 
+      <SyIconButton
         class="clear-button ariaLabel"
         iconName="iconTrashcan"
         ariaLabel="Clear chat history"
-        @click="handleClearHistory"
         :disabled="!isConfigured || isLoading"
+        @click="handleClearHistory"
       />
-      <SyIconButton 
+      <SyIconButton
         class="send-button ariaLabel"
         iconName="iconSend"
         ariaLabel="Send"
-        @click="handleSend"
         :disabled="!isConfigured || isLoading"
+        @click="handleSend"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import StealthTextarea from './SiyuanTheme/StealthTextarea.vue'
-import SyIconButton from './SiyuanTheme/SyIconButton.vue'
-import DocumentReference from './DocumentReference.vue'
+import DocumentReference from "./DocumentReference.vue"
+import StealthTextarea from "./SiyuanTheme/StealthTextarea.vue"
+import SyIconButton from "./SiyuanTheme/SyIconButton.vue"
+import type { DocumentContext } from "@/stores/document-context.ts"
 
 defineProps<{
   modelValue: string
   hasDocumentContext: boolean
-  documentContext: any
+  documentContext: DocumentContext
   documentName: string
   isConfigured: boolean
   isLoading: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'send'): void
-  (e: 'document-click'): void
-  (e: 'clear-history'): void
+  (e: "update:modelValue", value: string): void
+  (e: "send"): void
+  (e: "document-click"): void
+  (e: "clear-history"): void
 }>()
 
 // Handle document button click
 const handleDocumentClick = () => {
-  emit('document-click')
+  emit("document-click")
 }
 
 // Handle keydown for Enter key
 const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault()
     handleSend()
   }
@@ -78,12 +79,12 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 // Handle send button click
 const handleSend = () => {
-  emit('send')
+  emit("send")
 }
 
 // Handle clear history button click
 const handleClearHistory = () => {
-  emit('clear-history')
+  emit("clear-history")
 }
 </script>
 
@@ -118,12 +119,10 @@ const handleClearHistory = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 }
-
 </style>
-

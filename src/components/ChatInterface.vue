@@ -33,35 +33,36 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onBeforeUnmount, nextTick, watch} from 'vue'
-import InputArea from './InputArea.vue'
-import ChatHistory from './ChatHistory.vue'
-import {usePlugin} from '@/main'
-import RAGAssistantPlugin from '@/index'
-import {useChatHistory} from '@/composables/useChatHistory'
-import {useDocumentContext} from '@/composables/useDocumentContext'
-import {useChatMessages} from '@/composables/useChatMessages'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { useChatHistory } from "@/composables/useChatHistory"
+import { useChatMessages } from "@/composables/useChatMessages"
+import { useDocumentContext } from "@/composables/useDocumentContext"
+import RAGAssistantPlugin from "@/index"
+import { usePlugin } from "@/main"
 import {
+  buildAssistantMessage,
   buildContextFreeSystemMessage,
   buildContextualSystemMessage,
   buildUserMessage,
-  buildAssistantMessage
-} from "@/utils/message-factory.ts";
+} from "@/utils/message-factory.ts"
+import ChatHistory from "./ChatHistory.vue"
+import InputArea from "./InputArea.vue"
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
 // Initialize composables
-const {messages, switchToDocument, addMessageToHistory, clearHistory, removeMessagesFromIndex} = useChatHistory(plugin)
+const { messages, switchToDocument, addMessageToHistory, clearHistory, removeMessagesFromIndex } =
+  useChatHistory(plugin)
 const {
   hasDocumentContext,
   documentName,
   documentContext,
   buildContextualMessage,
-  initDocumentContext
+  initDocumentContext,
 } = useDocumentContext()
-const {isConfigured, isLoading, checkConfiguration, sendMessage} = useChatMessages(plugin)
+const { isConfigured, isLoading, checkConfiguration, sendMessage } = useChatMessages(plugin)
 
-const currentInput = ref('')
+const currentInput = ref("")
 const chatHistoryRef = ref<InstanceType<typeof ChatHistory> | null>(null)
 
 // Scroll to bottom using ChatHistory component's method
@@ -74,7 +75,7 @@ let lastDocumentId: string | null = null
 
 // Handle document context changes
 const unsubscribe = initDocumentContext(async (context) => {
-  const newDocumentId = context.documentId || context.blockId
+  const newDocumentId = context.documentId
 
   // Only switch if the document actually changed
   if (newDocumentId !== lastDocumentId) {
@@ -132,9 +133,9 @@ const handleClearHistory = () => {
 const handleRewrite = async (assistantIndex: number) => {
   // Find the last user message before this assistant message
   const lastUserIndex = assistantIndex - 1
-  
-  if (lastUserIndex < 0 || messages.value[lastUserIndex].role !== 'user') {
-    console.error('Cannot rewrite: no user message found before assistant message')
+
+  if (lastUserIndex < 0 || messages.value[lastUserIndex].role !== "user") {
+    console.error("Cannot rewrite: no user message found before assistant message")
     return
   }
 
@@ -148,29 +149,24 @@ const handleRewrite = async (assistantIndex: number) => {
   await nextTick()
   scrollToBottom()
 
-  // Re-send the request
-  try {
-    // Get settings
-    const settings = await plugin.getSettings()
+  // Get settings
+  const settings = await plugin.getSettings()
 
-    // If context-free mode, use general system message and user message as-is
-    let contextualMessage = userMessage
-    let systemMessage = buildContextFreeSystemMessage();
+  // If context-free mode, use general system message and user message as-is
+  let contextualMessage = userMessage
+  let systemMessage = buildContextFreeSystemMessage()
 
-    // If context-aware mode, build contextual message with document content
-    if (!settings?.contextFree) {
-      systemMessage = buildContextualSystemMessage();
-      contextualMessage = await buildContextualMessage(userMessage, settings);
-    }
-
-    // Send message via composable
-    const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
-    
-    // Add assistant response to history (auto-saves via debounced save)
-    addMessageToHistory(buildAssistantMessage(response))
-  } catch (error) {
-    // Error already handled in composable
+  // If context-aware mode, build contextual message with document content
+  if (!settings?.contextFree) {
+    systemMessage = buildContextualSystemMessage()
+    contextualMessage = await buildContextualMessage(userMessage, settings)
   }
+
+  // Send message via composable
+  const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+
+  // Add assistant response to history (auto-saves via debounced save)
+  addMessageToHistory(buildAssistantMessage(response))
 
   // Scroll again after response
   await nextTick()
@@ -188,19 +184,19 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   }
 
   const userMessage = currentInput.value.trim()
-  currentInput.value = ''
+  currentInput.value = ""
 
   // Get settings
   const settings = await plugin.getSettings()
 
   // If context-free mode, use general system message and user message as-is
   let contextualMessage = userMessage
-  let systemMessage = buildContextFreeSystemMessage();
+  let systemMessage = buildContextFreeSystemMessage()
 
   // If context-aware mode, build contextual message with document content
   if (!settings?.contextFree) {
-    systemMessage = buildContextualSystemMessage();
-    contextualMessage = await buildContextualMessage(userMessage, settings);
+    systemMessage = buildContextualSystemMessage()
+    contextualMessage = await buildContextualMessage(userMessage, settings)
   }
 
   // Add user message to history
@@ -210,15 +206,11 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   await nextTick()
   scrollToBottom()
 
-  try {
-    // Send message via composable
-    const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+  // Send message via composable
+  const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
 
-    // Add assistant response to history (auto-saves via debounced save)
-    addMessageToHistory(buildAssistantMessage(response))
-  } catch (error) {
-    // Error already handled in composable
-  }
+  // Add assistant response to history (auto-saves via debounced save)
+  addMessageToHistory(buildAssistantMessage(response))
 
   // Scroll again after response
   await nextTick()
@@ -263,4 +255,3 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   color: var(--b3-theme-on-surface-light);
 }
 </style>
-

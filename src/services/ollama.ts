@@ -1,5 +1,5 @@
-import { forwardProxy, pushErrMsg } from '@/api'
-import { LOG_PREFIX } from '@/constants'
+import { forwardProxy, pushErrMsg } from "@/api"
+import { LOG_PREFIX } from "@/constants"
 
 export interface OllamaModel {
   name: string
@@ -12,7 +12,7 @@ export interface OllamaModelResponse {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant' | 'system'
+  role: "user" | "assistant" | "system"
   content: string
 }
 
@@ -37,28 +37,30 @@ export interface OllamaChatResponse {
  * @returns Array of available models
  */
 export async function fetchOllamaModels(baseUrl: string): Promise<OllamaModel[]> {
-  if (!baseUrl || baseUrl.trim() === '') {
+  if (!baseUrl || baseUrl.trim() === "") {
     return []
   }
 
   try {
     const url = `${baseUrl}/api/tags`
-    const response = await forwardProxy(url, 'GET', {}, [], 5000)
+    const response = await forwardProxy(url, "GET", {}, [], 5000)
 
     if (!response || !response.body) {
-      throw new Error('No response body received')
+      throw new Error("No response body received")
     }
 
     const data: OllamaModelResponse = JSON.parse(response.body)
-    
+
     if (!data.models || !Array.isArray(data.models)) {
-      throw new Error('Invalid response format')
+      throw new Error("Invalid response format")
     }
 
     return data.models
   } catch (error) {
-    console.error('Failed to fetch models from Ollama:', error)
-    pushErrMsg('Failed to fetch models from Ollama. Please check the URL and ensure Ollama is running.')
+    console.error("Failed to fetch models from Ollama:", error)
+    pushErrMsg(
+      "Failed to fetch models from Ollama. Please check the URL and ensure Ollama is running.",
+    )
     return []
   }
 }
@@ -75,14 +77,14 @@ export async function sendChatMessage(
   baseUrl: string,
   model: string,
   messages: ChatMessage[],
-  temperature: number = 0.1
+  temperature: number = 0.1,
 ): Promise<string> {
-  if (!baseUrl || baseUrl.trim() === '') {
-    throw new Error('Ollama URL is required')
+  if (!baseUrl || baseUrl.trim() === "") {
+    throw new Error("Ollama URL is required")
   }
 
   if (!model) {
-    throw new Error('Model is required')
+    throw new Error("Model is required")
   }
 
   try {
@@ -91,29 +93,28 @@ export async function sendChatMessage(
       model,
       messages,
       temperature,
-      stream: false
+      stream: false,
     }
 
-    if(import.meta.env.MODE === 'development') {
-      console.log(LOG_PREFIX, 'Sending chat message to Ollama:', messages)
+    if (import.meta.env.MODE === "development") {
+      console.log(LOG_PREFIX, "Sending chat message to Ollama:", messages)
     }
 
-    const response = await forwardProxy(url, 'POST', payload, [], 60000, 'application/json')
+    const response = await forwardProxy(url, "POST", payload, [], 60000, "application/json")
 
     if (!response || !response.body) {
-      throw new Error('No response body received')
+      throw new Error("No response body received")
     }
 
     const data: OllamaChatResponse = JSON.parse(response.body)
 
     if (!data.message || !data.message.content) {
-      throw new Error('Invalid response format')
+      throw new Error("Invalid response format")
     }
 
     return data.message.content
   } catch (error) {
-    console.error('Failed to send chat message to Ollama:', error)
+    console.error("Failed to send chat message to Ollama:", error)
     throw error
   }
 }
-

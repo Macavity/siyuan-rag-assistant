@@ -1,69 +1,64 @@
-import {
-  Dialog,
-  Plugin,
-  getFrontend,
-  IEventBusMap,
-  IProtyle,
-} from "siyuan";
-import "@/index.scss";
-import {icons} from "./utils/icons";
-import PluginInfoString from '@/../plugin.json'
-import {destroy, init} from '@/main'
-import {createApp} from 'vue'
-import SettingsDialog from '@/components/SettingsDialog.vue'
-import {type RAGAssistantSettings, DEFAULT_SETTINGS} from '@/types/settings'
-import {SiyuanEvents} from "./types/siyuan-events";
-import {getBlockByID} from '@/api'
-import {useDocumentContextStore} from "@/stores/document-context.ts";
-import { LOG_PREFIX, STORAGE_NAME } from "./constants";
+import type { RAGAssistantSettings } from "@/types/settings"
+import { Dialog, getFrontend, type IEventBusMap, type IProtyle, Plugin } from "siyuan"
+import { createApp } from "vue"
+import PluginInfoString from "@/../plugin.json"
+import { getBlockByID } from "@/api"
+import SettingsDialog from "@/components/SettingsDialog.vue"
+import { destroy, init } from "@/main"
+import { useDocumentContextStore } from "@/stores/document-context.ts"
+import { DEFAULT_SETTINGS } from "@/types/settings"
+import { LOG_PREFIX, STORAGE_NAME } from "./constants"
+import { SiyuanEvents } from "./types/siyuan-events"
+import { icons } from "./utils/icons"
+import "@/index.scss"
 
 let PluginInfo = {
-  version: '',
+  version: "",
 }
 try {
   PluginInfo = PluginInfoString
 } catch (err) {
-  console.log('Plugin info parse error: ', err)
+  console.log("Plugin info parse error: ", err)
 }
-const {
-  version,
-} = PluginInfo
+const { version } = PluginInfo
 
-type TEventSwitchProtyle = CustomEvent<
-  IEventBusMap[SiyuanEvents.SWITCH_PROTYLE]
->;
+type TEventSwitchProtyle = CustomEvent<IEventBusMap[SiyuanEvents.SWITCH_PROTYLE]>
 
 export default class RAGAssistantPlugin extends Plugin {
   // Run as mobile
-  public isMobile: boolean
+  public isMobile = false
   // Run in browser
-  public isBrowser: boolean
+  public isBrowser = false
   // Run as local
-  public isLocal: boolean
+  public isLocal = false
   // Run in Electron
-  public isElectron: boolean
+  public isElectron = false
   // Run in window
-  public isInWindow: boolean
-  public platform: SyFrontendTypes
+  public isInWindow = false
+  public platform: SyFrontendTypes | null = null
   public readonly version = version
 
   async onload() {
-    const frontEnd = getFrontend();
-    this.addIcons(icons);
+    const frontEnd = getFrontend()
+    this.addIcons(icons)
     this.platform = frontEnd as SyFrontendTypes
     this.isMobile = frontEnd === "mobile" || frontEnd === "browser-mobile"
-    this.isBrowser = frontEnd.includes('browser')
-    this.isLocal =
-      location.href.includes('127.0.0.1')
-      || location.href.includes('localhost')
-    this.isInWindow = location.href.includes('window.html')
+    this.isBrowser = frontEnd.includes("browser")
+    this.isLocal = location.href.includes("127.0.0.1") || location.href.includes("localhost")
+    this.isInWindow = location.href.includes("window.html")
 
     try {
-      require("@electron/remote")
-        .require("@electron/remote/main")
-      this.isElectron = true
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const electronRemote = (globalThis as any)?.require?.("@electron/remote")
+      if (electronRemote) {
+        electronRemote.require?.("@electron/remote/main")
+        this.isElectron = true
+      } else {
+        this.isElectron = false
+      }
     } catch (err) {
       this.isElectron = false
+      console.debug(err)
     }
 
     // Listen for document switching events to track current document context
@@ -71,43 +66,41 @@ export default class RAGAssistantPlugin extends Plugin {
       const protyleData = e.detail as { protyle: IProtyle }
 
       // Log the full event data for debugging
-      console.log('SWITCH_PROTYLE event data:', protyleData)
+      console.log("SWITCH_PROTYLE event data:", protyleData)
 
       if (!protyleData?.protyle) {
-        console.log(LOG_PREFIX, 'No protyle instance found in event')
+        console.log(LOG_PREFIX, "No protyle instance found in event")
         return
       }
 
-      const protyle = protyleData.protyle
-      const block = protyle.block as any
+      const protyle = protyleData.protyle as IProtyle
+      const block = protyle.block
 
       // Extract document ID from the protyle instance
       const documentId = block?.rootID || block?.id || null
 
-      console.log(LOG_PREFIX, 'Document context updated:', {documentId })
+      console.log(LOG_PREFIX, "Document context updated:", { documentId })
 
-      if(!documentId) {
-        console.warn(LOG_PREFIX, 'No document ID found in event.')
+      if (!documentId) {
+        console.warn(LOG_PREFIX, "No document ID found in event.")
         return
       }
 
       // Fetch document name from the block data
       let documentName: string | null = null
       const blockData = await getBlockByID(documentId)
-      console.log(LOG_PREFIX, 'Fetched block data:', blockData)
+      console.log(LOG_PREFIX, "Fetched block data:", blockData)
 
       // Try different ways to get the document name
       if (blockData?.content) {
         documentName = blockData.content
       }
 
-      console.log(LOG_PREFIX, 'Fetched document name:', documentName)
-
+      console.log(LOG_PREFIX, "Fetched document name:", documentName)
 
       // Update the document context store
       const store = useDocumentContextStore()
       store.updateDocumentContext(documentId, documentName)
-
     })
 
     init(this)
@@ -123,17 +116,17 @@ export default class RAGAssistantPlugin extends Plugin {
 
   async createSettingsDialog() {
     const dialog = new Dialog({
-      title: '',
+      title: "",
       transparent: true,
       content: `<div id="rag-assistant-settings-dialog-container" style="width: 100%; height: 100%;"></div>`,
-      width: '600px',
-      height: '500px',
+      width: "600px",
+      height: "500px",
     })
 
-    const container = dialog.element.querySelector('#rag-assistant-settings-dialog-container')
+    const container = dialog.element.querySelector("#rag-assistant-settings-dialog-container")
     if (container) {
       // Load existing settings
-      const savedSettings = await this.loadData(STORAGE_NAME) as RAGAssistantSettings | null
+      const savedSettings = (await this.loadData(STORAGE_NAME)) as RAGAssistantSettings | null
 
       const app = createApp(SettingsDialog, {
         onClose: () => {
@@ -143,7 +136,7 @@ export default class RAGAssistantPlugin extends Plugin {
           await this.saveData(STORAGE_NAME, settings)
           dialog.destroy()
         },
-        savedSettings
+        savedSettings,
       })
 
       app.mount(container as Element)
@@ -162,7 +155,7 @@ export default class RAGAssistantPlugin extends Plugin {
    * Get the current settings
    */
   async getSettings(): Promise<RAGAssistantSettings> {
-    const savedSettings = await this.loadData(STORAGE_NAME) as RAGAssistantSettings | null
-    return savedSettings || {...DEFAULT_SETTINGS}
+    const savedSettings = (await this.loadData(STORAGE_NAME)) as RAGAssistantSettings | null
+    return savedSettings || { ...DEFAULT_SETTINGS }
   }
 }

@@ -1,57 +1,59 @@
 <script setup lang="ts">
-import { usePlugin } from '@/main'
-import { createApp } from 'vue'
-import ChatInterface from '@/components/ChatInterface.vue'
+import { createApp } from "vue"
+import ChatInterface from "@/components/ChatInterface.vue"
+import { usePlugin } from "@/main"
+import { type App } from "vue"
 
 const plugin = usePlugin()
 
-let chatApp: any = null
+let chatApp: App<Element> | null = null
 let chatDiv: HTMLDivElement | null = null
 
 plugin.addDock({
-      config: {
-        position: "RightTop",
-        size: { width: 400, height: 0 },
-        icon: "iconSparkles",
-        title: plugin.i18n.dockTitle || 'RAG Assistant',
-      },
-      data: {
-        // Any initial data for the dock, if needed
-      },
-      type: "rag-assistant-dock",
-      resize() {
-        // console.log("Task list dock resized");
-      },
-      update() {
-        // console.log("Task list dock update");
-      },
-      init: (dock) => {
-        // Create container for chat interface
-        chatDiv = document.createElement('div')
-        chatDiv.style.width = '100%'
-        chatDiv.style.height = '100%'
-        
-        // Append to dock element
-        if (dock?.element) {
-          dock.element.appendChild(chatDiv)
-        }
-        
-        // Mount ChatInterface component
-        chatApp = createApp(ChatInterface)
-        chatApp.mount(chatDiv)
-      },
-      destroy() {
-        // Clean up chat interface
-        if (chatApp && chatDiv) {
-          chatApp.unmount()
-          chatDiv = null
-          chatApp = null
-        }
-      },
-    });
+  config: {
+    position: "RightTop",
+    size: {
+      width: 400,
+      height: 0,
+    },
+    icon: "iconSparkles",
+    title: plugin.i18n.dockTitle || "RAG Assistant",
+  },
+  data: {
+    // Any initial data for the dock, if needed
+  },
+  type: "rag-assistant-dock",
+  resize() {
+    // console.log("Task list dock resized");
+  },
+  update() {
+    // console.log("Task list dock update");
+  },
+  init: (dock) => {
+    // Create container for chat interface
+    chatDiv = document.createElement("div")
+    chatDiv.style.width = "100%"
+    chatDiv.style.height = "100%"
 
+    // Append to dock element
+    if (dock?.element) {
+      dock.element.appendChild(chatDiv)
+    }
+
+    // Mount ChatInterface component
+    chatApp = createApp(ChatInterface)
+    chatApp.mount(chatDiv)
+  },
+  destroy() {
+    // Clean up chat interface
+    if (chatApp && chatDiv) {
+      chatApp.unmount()
+      chatDiv = null
+      chatApp = null
+    }
+  },
+})
 </script>
-
 
 <!-- 局部样式 -->
 <style lang="scss" scoped>

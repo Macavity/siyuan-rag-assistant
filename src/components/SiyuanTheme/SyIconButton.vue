@@ -5,7 +5,7 @@
     :aria-label="ariaLabel"
     @click="$emit('click', $event)"
   >
-  <svg
+    <svg
       :style="{
         fontSize: size,
         width: size,
@@ -30,7 +30,7 @@ defineProps({
   disabled: Boolean,
 })
 defineEmits<{
-  (e: 'click', event: MouseEvent): void
+  (e: "click", event: MouseEvent): void
 }>()
 </script>
 

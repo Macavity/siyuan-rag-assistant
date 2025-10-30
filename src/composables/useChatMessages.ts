@@ -3,12 +3,12 @@
  * Handles message sending, configuration checking, and error handling
  */
 
-import { ref, Ref } from 'vue'
-import { sendChatMessage } from '@/services/ollama'
-import { pushErrMsg } from '@/api'
-import type RAGAssistantPlugin from '@/index'
-import {Message} from "@/types/message.ts";
-import {buildUserMessage} from "@/utils/message-factory.ts";
+import type RAGAssistantPlugin from "@/index"
+import { ref, type Ref } from "vue"
+import { pushErrMsg } from "@/api"
+import { sendChatMessage } from "@/services/ollama"
+import { type Message } from "@/types/message.ts"
+import { buildUserMessage } from "@/utils/message-factory.ts"
 
 export function useChatMessages(plugin: RAGAssistantPlugin) {
   const isConfigured: Ref<boolean> = ref(false)
@@ -22,7 +22,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
       const settings = await plugin.getSettings()
       isConfigured.value = !!(settings.ollamaUrl && settings.selectedModel)
     } catch (error) {
-      console.error('Error checking configuration:', error)
+      console.error("Error checking configuration:", error)
       isConfigured.value = false
     }
   }
@@ -35,7 +35,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
     userMessage: string,
     contextualMessage: string,
     systemMessage: Message | null,
-    messages: Ref<Message[]>
+    messages: Ref<Message[]>,
   ): Promise<string> => {
     isLoading.value = true
     try {
@@ -44,7 +44,7 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
 
       if (!settings.ollamaUrl || !settings.selectedModel) {
         isConfigured.value = false
-        throw new Error('Ollama URL or model not configured')
+        throw new Error("Ollama URL or model not configured")
       }
 
       // Update configuration status
@@ -55,10 +55,10 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
 
       // Replace the last user message with the contextual version if it differs
       if (contextualMessage !== userMessage) {
-        messagesToSend[messagesToSend.length - 1] = buildUserMessage(contextualMessage);
+        messagesToSend[messagesToSend.length - 1] = buildUserMessage(contextualMessage)
 
         // Add system message at the start if this is a new conversation with context
-        const hasSystemMessage = messagesToSend.some(msg => msg.role === 'system')
+        const hasSystemMessage = messagesToSend.some((msg) => msg.role === "system")
         if (!hasSystemMessage && systemMessage) {
           messagesToSend.unshift(systemMessage)
         }
@@ -68,13 +68,13 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
         settings.ollamaUrl,
         settings.selectedModel,
         messagesToSend,
-        settings.temperature
+        settings.temperature,
       )
 
       return response
     } catch (error) {
-      console.error('Error sending message:', error)
-      pushErrMsg('Failed to send message. Please check your Ollama configuration.')
+      console.error("Error sending message:", error)
+      pushErrMsg("Failed to send message. Please check your Ollama configuration.")
       await checkConfiguration()
       throw error
     } finally {
@@ -86,6 +86,6 @@ export function useChatMessages(plugin: RAGAssistantPlugin) {
     isConfigured,
     isLoading,
     checkConfiguration,
-    sendMessage
+    sendMessage,
   }
 }

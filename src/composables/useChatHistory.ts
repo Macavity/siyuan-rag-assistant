@@ -4,13 +4,14 @@
  * Uses per-file storage: chat-history/${documentId}
  */
 
-import { ref, Ref } from 'vue'
-import { CHAT_HISTORY_PREFIX } from '@/constants'
-import {Message} from "@/types/message.ts";
+import { ref, type Ref } from "vue"
+import { CHAT_HISTORY_PREFIX } from "@/constants"
+import { type Message } from "@/types/message.ts"
+import RAGAssistantPlugin from "@/index.ts"
 
-export function useChatHistory(plugin: any) {
+export function useChatHistory(plugin: RAGAssistantPlugin) {
   const messages: Ref<Message[]> = ref([])
-  let currentDocumentId: Ref<string | null> = ref(null)
+  const currentDocumentId: Ref<string | null> = ref(null)
   let isSaving = false
   let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -28,23 +29,23 @@ export function useChatHistory(plugin: any) {
     try {
       const storageName = getStorageName(documentId)
       const result = await plugin.loadData(storageName)
-      
+
       // Check if the response is an error object (has code property)
-      if (result && typeof result === 'object' && 'code' in result) {
+      if (result && typeof result === "object" && "code" in result) {
         // File doesn't exist or other error - treat as empty history
         messages.value = []
         return
       }
-      
+
       // Check if result is a valid array
       if (result && Array.isArray(result)) {
         messages.value = result
-        console.log('Loaded chat history for document:', documentId)
+        console.log("Loaded chat history for document:", documentId)
       } else {
         messages.value = []
       }
     } catch (error) {
-      console.error('Error loading chat history:', error)
+      console.error("Error loading chat history:", error)
       messages.value = []
     }
   }
@@ -61,9 +62,9 @@ export function useChatHistory(plugin: any) {
       isSaving = true
       const storageName = getStorageName(documentId)
       await plugin.saveData(storageName, messages.value)
-      console.log('Saved chat history for document:', documentId)
+      console.log("Saved chat history for document:", documentId)
     } catch (error) {
-      console.error('Error saving chat history:', error)
+      console.error("Error saving chat history:", error)
     } finally {
       isSaving = false
     }
@@ -103,7 +104,7 @@ export function useChatHistory(plugin: any) {
 
     // Wait for any in-flight save to complete before switching
     while (isSaving) {
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10))
     }
 
     // Load new document's history
@@ -154,6 +155,6 @@ export function useChatHistory(plugin: any) {
     switchToDocument,
     addMessageToHistory,
     clearHistory,
-    removeMessagesFromIndex
+    removeMessagesFromIndex,
   }
 }

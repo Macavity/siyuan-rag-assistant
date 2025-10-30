@@ -1,12 +1,12 @@
+import type { RAGAssistantSettings } from "@/types/settings"
 /**
  * Composable for managing document context integration with chat
  * Handles document switching, context retrieval, and UI state
  */
-import {computed, watch} from 'vue'
-import {useDocumentContextStore} from '@/stores/document-context'
-import {getBlockData, getDocumentMarkdown, listDirectoryDocuments} from '@/utils/document-helpers'
-import type {RAGAssistantSettings} from '@/types/settings'
-import {LOG_PREFIX} from '@/constants'
+import { computed, watch } from "vue"
+import { LOG_PREFIX } from "@/constants"
+import { type DocumentContext, useDocumentContextStore } from "@/stores/document-context"
+import { getBlockData, getDocumentMarkdown, listDirectoryDocuments } from "@/utils/document-helpers"
 
 export function useDocumentContext() {
   const store = useDocumentContextStore()
@@ -20,12 +20,12 @@ export function useDocumentContext() {
    */
   const getCurrentDocumentContent = async (): Promise<string | null> => {
     const context = store.getDocumentContext()
-    const {documentId } = context
+    const { documentId } = context
 
-    console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'Starting with context:', {documentId})
+    console.log(LOG_PREFIX, "getCurrentDocumentContent", "Starting with context:", { documentId })
 
     if (!documentId) {
-      console.log(LOG_PREFIX, 'getCurrentDocumentContent', 'No documentId, returning null')
+      console.log(LOG_PREFIX, "getCurrentDocumentContent", "No documentId, returning null")
       return null
     }
 
@@ -38,7 +38,7 @@ export function useDocumentContext() {
   const getSubDocumentsContent = async (
     notebookId: string,
     path: string,
-    includeSubDocuments: boolean
+    includeSubDocuments: boolean,
   ): Promise<string | null> => {
     if (!includeSubDocuments) {
       return null
@@ -58,11 +58,18 @@ export function useDocumentContext() {
         try {
           const content = await getDocumentMarkdown(file.id)
           if (content) {
-            const subDocumentHeadline = file.name ? `## Sub-Document ${file.name}:` : `## Sub-Document Content:`;
-            subDocumentsContent.push(`${subDocumentHeadline}\n${content}`);
+            const subDocumentHeadline = file.name
+              ? `## Sub-Document ${file.name}:`
+              : `## Sub-Document Content:`
+            subDocumentsContent.push(`${subDocumentHeadline}\n${content}`)
           }
         } catch (error) {
-          console.error(LOG_PREFIX, 'getSubDocumentsContent', `Error fetching content for ${file.id}:`, error)
+          console.error(
+            LOG_PREFIX,
+            "getSubDocumentsContent",
+            `Error fetching content for ${file.id}:`,
+            error,
+          )
         }
       }
 
@@ -70,9 +77,14 @@ export function useDocumentContext() {
         return null
       }
 
-      return subDocumentsContent.join('\n\n---\n\n')
+      return subDocumentsContent.join("\n\n---\n\n")
     } catch (error) {
-      console.error(LOG_PREFIX, 'getSubDocumentsContent', 'Error getting sub-documents content:', error)
+      console.error(
+        LOG_PREFIX,
+        "getSubDocumentsContent",
+        "Error getting sub-documents content:",
+        error,
+      )
       return null
     }
   }
@@ -98,32 +110,46 @@ export function useDocumentContext() {
               subDocumentsContent = await getSubDocumentsContent(block.box, block.path, true)
             }
           } catch (error) {
-            console.error(LOG_PREFIX, 'getDocumentAndSubDocumentsContent', 'Error getting sub-documents:', error)
+            console.error(
+              LOG_PREFIX,
+              "getDocumentAndSubDocumentsContent",
+              "Error getting sub-documents:",
+              error,
+            )
           }
         }
       } catch (error) {
-        console.error(LOG_PREFIX, 'getDocumentAndSubDocumentsContent', 'Error getting document context:', error)
+        console.error(
+          LOG_PREFIX,
+          "getDocumentAndSubDocumentsContent",
+          "Error getting document context:",
+          error,
+        )
       }
     }
 
-    return {documentContent, subDocumentsContent}
+    return {
+      documentContent,
+      subDocumentsContent,
+    }
   }
 
   /**
    * Build contextual message with document content
    */
   const buildContextualMessage = async (userMessage: string, settings: RAGAssistantSettings) => {
-    const {documentContent, subDocumentsContent} = await getDocumentAndSubDocumentsContent(settings)
+    const { documentContent, subDocumentsContent } =
+      await getDocumentAndSubDocumentsContent(settings)
 
     if (!documentContent && !subDocumentsContent) {
       return userMessage
     }
 
-    let fullContent = documentContent || ''
+    let fullContent = documentContent || ""
 
     // Append sub-documents if available
     if (subDocumentsContent) {
-      fullContent += '\n\n# Sub Documents\n\n' + subDocumentsContent
+      fullContent += `\n\n# Sub Documents\n\n${subDocumentsContent}`
     }
 
     return `Document Content:
@@ -142,7 +168,7 @@ Answer directly based ONLY on the document provided above.`
   const openDocument = (event: MouseEvent) => {
     event.preventDefault()
     const target = event.currentTarget as HTMLElement
-    const docId = target.getAttribute('data-id')
+    const docId = target.getAttribute("data-id")
 
     if (docId) {
       // Navigate to the block using SiYuan's block URL
@@ -153,10 +179,10 @@ Answer directly based ONLY on the document provided above.`
   /**
    * Initialize document context subscription (now using Pinia reactivity)
    */
-  const initDocumentContext = (onContextChange: (context: any) => void) => {
+  const initDocumentContext = (onContextChange: (context: DocumentContext) => void) => {
     // Track the last context to prevent duplicate callbacks
     let lastContext = store.getDocumentContext()
-    
+
     // Watch for changes in the document context store
     // Watch the documentContext ref directly for reactivity
     const stopWatcher = watch(
@@ -165,13 +191,13 @@ Answer directly based ONLY on the document provided above.`
         // Only trigger if documentId actually changed
         const newDocId = newContext.documentId
         const lastDocId = lastContext.documentId
-        
+
         if (newDocId !== lastDocId) {
           lastContext = { ...newContext }
           onContextChange(newContext)
         }
       },
-      { deep: true }
+      { deep: true },
     )
 
     // Return unsubscribe function
@@ -186,8 +212,6 @@ Answer directly based ONLY on the document provided above.`
     documentContext,
     buildContextualMessage,
     openDocument,
-    initDocumentContext
+    initDocumentContext,
   }
 }
-
-

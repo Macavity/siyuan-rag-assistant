@@ -1,33 +1,36 @@
-import {getContextFreeSystemPrompt, getDocumentAwareSystemPrompt} from "@/utils/prompt-templates.ts";
-import {Message} from "@/types/message.ts";
+import type { Message } from "@/types/message.ts"
+import {
+  getContextFreeSystemPrompt,
+  getDocumentAwareSystemPrompt,
+} from "@/utils/prompt-templates.ts"
 
 /**
  * Get the appropriate system message based on context mode
  */
 export function buildContextFreeSystemMessage(): Message {
   return {
-    role: 'system',
-    content: getContextFreeSystemPrompt()
+    role: "system",
+    content: getContextFreeSystemPrompt(),
   }
 }
 
-export function buildContextualSystemMessage(): Message{
+export function buildContextualSystemMessage(): Message {
   return {
-    role: 'system',
+    role: "system",
     content: getDocumentAwareSystemPrompt(),
   }
 }
 
 export function buildAssistantMessage(content: string): Message {
   return {
-    role: 'assistant',
+    role: "assistant",
     content,
   }
 }
 
 export function buildUserMessage(userMessage: string): Message {
   return {
-    role: 'user',
-    content: userMessage
-  };
+    role: "user",
+    content: userMessage,
+  }
 }

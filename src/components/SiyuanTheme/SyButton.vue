@@ -13,6 +13,6 @@ defineProps<{
   disabled?: boolean
 }>()
 defineEmits<{
-  (e: 'click', event: MouseEvent): void
+  (e: "click", event: MouseEvent): void
 }>()
 </script>
