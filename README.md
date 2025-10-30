@@ -4,7 +4,7 @@ This plugin enables seamless integration of local Large Language Models (LLMs) w
 
 ## Demo
 
-// TODO
+https://github.com/user-attachments/assets/eb5ad265-a083-4bd5-bcbf-b48a5654c475
 
 ## Features
 
