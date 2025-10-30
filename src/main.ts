@@ -1,39 +1,36 @@
-import {
-  Plugin,
-} from "siyuan";
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import { LOG_PREFIX } from "./constants";
+import { createPinia } from "pinia"
+import { Plugin } from "siyuan"
+import { createApp, type App as AppType } from "vue"
+import App from "./App.vue"
+import { LOG_PREFIX } from "./constants"
 
-let plugin = null
+let plugin: Plugin | null = null
 export function usePlugin(pluginProps?: Plugin): Plugin {
   if (pluginProps) {
     plugin = pluginProps
   }
   if (!plugin && !pluginProps) {
-    console.error(LOG_PREFIX, 'need bind plugin')
+    console.error(LOG_PREFIX, "need bind plugin")
   }
-  return plugin;
+  return plugin as Plugin
 }
 
-
-let app = null
+let app: AppType<Element>
 let div: HTMLDivElement | null = null
 
 export function init(pluginInstance: Plugin) {
   // bind plugin hook
-  usePlugin(pluginInstance);
+  usePlugin(pluginInstance)
 
-  div = document.createElement('div')
-  div.classList.toggle('plugin-ra-vue-app')
-  div.id = 'siyuan-rag-assistant'
+  div = document.createElement("div")
+  div.classList.toggle("plugin-ra-vue-app")
+  div.id = "siyuan-rag-assistant"
   app = createApp(App)
-  
+
   // Setup Pinia
   const pinia = createPinia()
   app.use(pinia)
-  
+
   app.mount(div)
   document.body.appendChild(div)
 }
@@ -43,6 +40,5 @@ export function destroy() {
     app.unmount()
     document.body.removeChild(div)
     div = null
-    app = null
   }
 }

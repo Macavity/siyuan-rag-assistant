@@ -25,24 +25,14 @@
               :options="modelOptions"
               :disabled="loadingModels"
             />
-            <SyButton
-              @click="fetchModels"
-              :disabled="loadingModels"
-            >
-              Refresh Models
-            </SyButton>
+            <SyButton @click="fetchModels" :disabled="loadingModels"> Refresh Models </SyButton>
           </div>
         </div>
 
         <!-- Temperature Slider -->
         <div class="rag-assistant-setting-item">
           <label class="rag-assistant-setting-label">Temperature: {{ settings.temperature }}</label>
-          <SySlider
-            v-model="settings.temperature"
-            :min="0.1"
-            :max="1.0"
-            :step="0.1"
-          />
+          <SySlider v-model="settings.temperature" :min="0.1" :max="1.0" :step="0.1" />
         </div>
 
         <!-- Context Free Toggle -->
@@ -60,26 +50,23 @@
     </div>
 
     <div class="rag-assistant-dialog__footer">
-      <SyButton @click="closeDialog">
-        Cancel
-      </SyButton>
-      <SyButton @click="saveSettings">
-        Save
-      </SyButton>
+      <SyButton @click="closeDialog">Cancel</SyButton>
+      <SyButton @click="saveSettings">Save</SyButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import SyButton from './SiyuanTheme/SyButton.vue'
-import SyCheckbox from './SiyuanTheme/SyCheckbox.vue'
-import SyInput from './SiyuanTheme/SyInput.vue'
-import SySelect from './SiyuanTheme/SySelect.vue'
-import SySlider from './SiyuanTheme/SySlider.vue'
-import { fetchOllamaModels } from '@/services/ollama'
-import { pushMsg } from '@/api'
-import { type RAGAssistantSettings, DEFAULT_SETTINGS } from '@/types/settings'
+import type { RAGAssistantSettings } from "@/types/settings"
+import { onMounted, ref, watch } from "vue"
+import { pushMsg } from "@/api"
+import { fetchOllamaModels } from "@/services/ollama"
+import { DEFAULT_SETTINGS } from "@/types/settings"
+import SyButton from "./SiyuanTheme/SyButton.vue"
+import SyCheckbox from "./SiyuanTheme/SyCheckbox.vue"
+import SyInput from "./SiyuanTheme/SyInput.vue"
+import SySelect from "./SiyuanTheme/SySelect.vue"
+import SySlider from "./SiyuanTheme/SySlider.vue"
 
 const props = defineProps<{
   onClose: () => void
@@ -90,7 +77,10 @@ const props = defineProps<{
 const loadingModels = ref(false)
 const settings = ref<RAGAssistantSettings>({ ...DEFAULT_SETTINGS })
 const modelOptions = ref<Array<{ value: string; text: string }>>([
-  { value: '', text: 'Loading...' },
+  {
+    value: "",
+    text: "Loading...",
+  },
 ])
 
 // Load settings from plugin storage
@@ -98,10 +88,13 @@ onMounted(async () => {
   try {
     const savedSettings = props.savedSettings
     if (savedSettings) {
-      settings.value = { ...DEFAULT_SETTINGS, ...savedSettings }
+      settings.value = {
+        ...DEFAULT_SETTINGS,
+        ...savedSettings,
+      }
     }
   } catch (error) {
-    console.error('Failed to load settings:', error)
+    console.error("Failed to load settings:", error)
   }
 
   // Fetch models if URL is available
@@ -111,24 +104,37 @@ onMounted(async () => {
 })
 
 // Watch for URL changes to auto-fetch models
-watch(() => settings.value.ollamaUrl, async (newUrl) => {
-  if (newUrl && newUrl.trim() !== '') {
-    await fetchModels()
-  }
-})
+watch(
+  () => settings.value.ollamaUrl,
+  async (newUrl) => {
+    if (newUrl && newUrl.trim() !== "") {
+      await fetchModels()
+    }
+  },
+)
 
 async function fetchModels() {
-  if (!settings.value.ollamaUrl || settings.value.ollamaUrl.trim() === '') {
-    modelOptions.value = [{ value: '', text: 'Please enter Ollama URL' }]
+  if (!settings.value.ollamaUrl || settings.value.ollamaUrl.trim() === "") {
+    modelOptions.value = [
+      {
+        value: "",
+        text: "Please enter Ollama URL",
+      },
+    ]
     return
   }
 
   loadingModels.value = true
   try {
     const models = await fetchOllamaModels(settings.value.ollamaUrl)
-    
+
     if (models.length === 0) {
-      modelOptions.value = [{ value: '', text: 'No models available' }]
+      modelOptions.value = [
+        {
+          value: "",
+          text: "No models available",
+        },
+      ]
       return
     }
 
@@ -138,14 +144,19 @@ async function fetchModels() {
     }))
 
     // Auto-select first model if current selection is invalid
-    if (!modelOptions.value.find(m => m.value === settings.value.selectedModel)) {
+    if (!modelOptions.value.find((m) => m.value === settings.value.selectedModel)) {
       settings.value.selectedModel = modelOptions.value[0].value
     }
-    
-    pushMsg('Models loaded successfully')
+
+    pushMsg("Models loaded successfully")
   } catch (error) {
-    console.error('Failed to fetch models:', error)
-    modelOptions.value = [{ value: '', text: 'Failed to fetch models' }]
+    console.error("Failed to fetch models:", error)
+    modelOptions.value = [
+      {
+        value: "",
+        text: "Failed to fetch models",
+      },
+    ]
   } finally {
     loadingModels.value = false
   }
@@ -232,4 +243,3 @@ function saveSettings() {
   border-top: 1px solid var(--b3-border-color);
 }
 </style>
-

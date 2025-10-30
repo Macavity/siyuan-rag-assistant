@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
       # Install dependencies
@@ -40,6 +40,6 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: "package.zip"
+          artifacts: package.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: true

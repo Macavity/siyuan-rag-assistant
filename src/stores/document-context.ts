@@ -3,40 +3,40 @@
  * Manages the currently active document state with reactive updates
  */
 
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore } from "pinia"
+import { computed, ref } from "vue"
 
-interface DocumentContext {
+export interface DocumentContext {
   documentId: string | null
   // blockId: string | null
   documentName: string | null
   lastUpdateTime: number
 }
 
-export const useDocumentContextStore = defineStore('documentContext', () => {
+export const useDocumentContextStore = defineStore("documentContext", () => {
   // State
   const documentContext = ref<DocumentContext>({
     documentId: null,
     // blockId: null,
     documentName: null,
-    lastUpdateTime: 0
+    lastUpdateTime: 0,
   })
 
   // Getters
   const hasDocumentContext = computed(() => {
-    return !!(documentContext.value.documentId)
+    return !!documentContext.value.documentId
   })
 
   const documentName = computed(() => {
-    return documentContext.value.documentName || ''
+    return documentContext.value.documentName || ""
   })
 
   // Actions
-  function updateDocumentContext(documentId?: string, documentName?: string) {
+  function updateDocumentContext(documentId?: string, documentName?: string | null) {
     documentContext.value = {
-      documentId: documentId || null,
-      documentName: documentName || null,
-      lastUpdateTime: Date.now()
+      documentId: documentId ?? null,
+      documentName: documentName ?? null,
+      lastUpdateTime: Date.now(),
     }
   }
 
@@ -47,14 +47,13 @@ export const useDocumentContextStore = defineStore('documentContext', () => {
   return {
     // State
     documentContext,
-    
+
     // Getters
     hasDocumentContext,
     documentName,
-    
+
     // Actions
     updateDocumentContext,
-    getDocumentContext
+    getDocumentContext,
   }
 })
-

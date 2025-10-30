@@ -4,11 +4,7 @@
     :value="modelValue"
     @input="$emit('update:modelValue', ($event.target as any).value)"
   >
-    <option
-      v-for="item of options"
-      :key="item.value"
-      :value="item.value"
-    >
+    <option v-for="item of options" :key="item.value" :value="item.value">
       {{ item.text }}
     </option>
   </select>
@@ -22,5 +18,5 @@ defineProps<{
   }>
   modelValue: string
 }>()
-defineEmits(['update:modelValue'])
+defineEmits(["update:modelValue"])
 </script>

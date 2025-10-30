@@ -1,4 +1,4 @@
-import {Message} from "@/types/message.ts";
+import type { Message } from "@/types/message.ts"
 
 /**
  * Settings interface for the RAG Assistant plugin
@@ -15,14 +15,13 @@ export interface RAGAssistantSettings {
  * Default settings for the RAG Assistant
  */
 export const DEFAULT_SETTINGS: RAGAssistantSettings = {
-  ollamaUrl: 'http://localhost:11434',
-  selectedModel: '',
+  ollamaUrl: "http://localhost:11434",
+  selectedModel: "",
   temperature: 0.1,
   contextFree: false,
   includeSubDocuments: false,
 }
 
 export interface ChatHistory {
-  [documentId: string]: Message[];
+  [documentId: string]: Message[]
 }
-

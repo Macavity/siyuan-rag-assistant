@@ -7,4 +7,4 @@ export const icons = `
     </g>
   </symbol>
 </svg>
-`;
+`

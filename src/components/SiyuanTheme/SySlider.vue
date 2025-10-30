@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue"
 
 const props = defineProps<{
   modelValue: number
@@ -24,7 +24,7 @@ const props = defineProps<{
   step?: number
 }>()
 
-defineEmits(['update:modelValue'])
+defineEmits(["update:modelValue"])
 
 const displayValue = computed(() => {
   return props.modelValue.toFixed(2)
@@ -50,4 +50,3 @@ const displayValue = computed(() => {
   color: var(--b3-theme-on-surface);
 }
 </style>
-

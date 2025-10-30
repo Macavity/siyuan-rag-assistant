@@ -5,12 +5,8 @@
   "version": "1.0.0",
   "minAppVersion": "2.10.14",
   "disabledInPublish": true,
-  "backends": [
-    "all"
-  ],
-  "frontends": [
-    "all"
-  ],
+  "backends": ["all"],
+  "frontends": ["all"],
   "displayName": {
     "default": "Local LLM RAG Assistant",
     "en_US": "Local LLM RAG Assistant",
@@ -31,5 +27,18 @@
     "github": "https://github.com/sponsors/Macavity",
     "custom": []
   },
-  "keywords": ["local", "llm", "rag", "assistant", "ollama", "AI","GenAI", "documents", "search", "retrieval", "augmented", "generation"]
+  "keywords": [
+    "local",
+    "llm",
+    "rag",
+    "assistant",
+    "ollama",
+    "AI",
+    "GenAI",
+    "documents",
+    "search",
+    "retrieval",
+    "augmented",
+    "generation"
+  ]
 }

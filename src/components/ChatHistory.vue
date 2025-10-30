@@ -1,10 +1,6 @@
 <template>
-  <div class="chat-history" ref="historyContainerRef">
-    <div
-      v-for="(message, index) in messages"
-      :key="index"
-      :class="['message', message.role]"
-    >
+  <div ref="historyContainerRef" class="chat-history">
+    <div v-for="(message, index) in messages" :key="index" class="message" :class="[message.role]">
       <div class="message-content-wrapper">
         <div class="message-content">
           <div v-html="formatMessage(message.content)"></div>
@@ -46,9 +42,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import SyIconButton from './SiyuanTheme/SyIconButton.vue'
-import type { Message } from '@/types/message'
+import type { Message } from "@/types/message"
+import { ref } from "vue"
+import SyIconButton from "./SiyuanTheme/SyIconButton.vue"
 
 const props = defineProps<{
   messages: Message[]
@@ -56,7 +52,7 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  (e: 'rewrite', index: number): void
+  (e: "rewrite", index: number): void
 }>()
 
 // Check if this is the last message in the array
@@ -76,36 +72,36 @@ const scrollToBottom = () => {
 defineExpose<{
   scrollToBottom: () => void
 }>({
-  scrollToBottom
+  scrollToBottom,
 })
 
 // Format message content - convert newlines to HTML breaks
 const formatMessage = (content: string) => {
-  if (!content) return ''
-  return content.replace(/\n/g, '<br>')
+  if (!content) return ""
+  return content.replace(/\n/g, "<br>")
 }
 
 // Copy message content to clipboard
 const copyToClipboard = async (content: string) => {
   try {
-    const plainText = content.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '')
+    const plainText = content.replace(/<br>/g, "\n").replace(/<[^>]*>/g, "")
     await navigator.clipboard.writeText(plainText)
-    console.log('Message copied to clipboard')
+    console.log("Message copied to clipboard")
   } catch (error) {
-    console.error('Failed to copy message:', error)
+    console.error("Failed to copy message:", error)
     // Fallback for older browsers
-    const textarea = document.createElement('textarea')
-    const plainText = content.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '')
+    const textarea = document.createElement("textarea")
+    const plainText = content.replace(/<br>/g, "\n").replace(/<[^>]*>/g, "")
     textarea.value = plainText
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
+    textarea.style.position = "fixed"
+    textarea.style.opacity = "0"
     document.body.appendChild(textarea)
     textarea.select()
     try {
-      document.execCommand('copy')
-      console.log('Message copied to clipboard (fallback)')
+      document.execCommand("copy")
+      console.log("Message copied to clipboard (fallback)")
     } catch (err) {
-      console.error('Failed to copy message (fallback):', err)
+      console.error("Failed to copy message (fallback):", err)
     }
     document.body.removeChild(textarea)
   }
@@ -217,7 +213,9 @@ const copyToClipboard = async (content: string) => {
 }
 
 @keyframes typing {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.7;
   }

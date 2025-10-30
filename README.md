@@ -14,7 +14,6 @@ https://github.com/user-attachments/assets/eb5ad265-a083-4bd5-bcbf-b48a5654c475
 - 💬 **Per-Document Chat History**: Maintains separate conversation history for each document
 - ⚙️ **Flexible Configuration**: Customize model, temperature, and context settings
 
-
 ## Recommended Ollama Models for Multi-Document Tasks
 
 - Llama 3.1 (8B or 70B): State-of-the-art model excellent for deep summarization, analysis, and evaluation.
@@ -61,4 +60,3 @@ RAG is an AI technique that improves large language model outputs by retrieving 
 
 - **Context-Free Chats**: When enabled, conversations won't use document context (general AI chat mode)
 - **Include Sub Documents**: When enabled, the AI will have access to all documents in the same folder as context
-
