@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+dev
+build
+tmp
+
+# Generated files
+package.zip
+*.zip
+
+# IDE
+.idea
+.vscode
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# Lock files (optional - some teams ignore these)
+# pnpm-lock.yaml
+# package-lock.json
+

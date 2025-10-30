@@ -65,18 +65,12 @@ export default antfu(
         allowAllPropertiesOnSameLine: false,
       }],
 
-      'style/arrow-parens': ['warn', 'always'],
+      'style/arrow-parens': 'off', // Handled by Prettier
       'style/brace-style': 'off',
-      'style/no-multiple-empty-lines': ['warn', {
-        max: 7,
-      }],
-      'style/operator-linebreak': ['warn', 'before', {
-        overrides: {
-          '=': 'ignore',
-        },
-      }],
+      'style/no-multiple-empty-lines': 'off', // Handled by Prettier
+      'style/operator-linebreak': 'off', // Handled by Prettier
       'style/padded-blocks': 'off',
-      'style/quotes': 'off',
+      'style/quotes': 'off', // Handled by Prettier
 
       'ts/consistent-type-imports': 'off',
       'ts/explicit-function-return-type': 'off',
@@ -89,13 +83,13 @@ export default antfu(
       'unused-imports/no-unused-imports': 'warn',
       'unicorn/prefer-dom-node-text-content': 'off',
 
-      'format/prettier': 'off',
+      'format/prettier': 'warn',
 
       'regexp/optimal-quantifier-concatenation': 'warn',
       'regexp/no-super-linear-backtracking': 'warn',
       'regexp/no-unused-capturing-group': 'warn',
 
-      'style/comma-dangle': ['error', 'always-multiline'],
+      'style/comma-dangle': 'off', // Handled by Prettier
 
       'vue/block-order': ['warn', {
         order: ['template', 'script', 'style'],
