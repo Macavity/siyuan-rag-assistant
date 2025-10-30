@@ -1,6 +1,10 @@
-# SiYuan RAG Assistant
+# Local LLM Integration Plugin for Siyuan
 
-A powerful AI assistant plugin for SiYuan that leverages your documents as context for intelligent conversations using local Ollama GenAI.
+This plugin enables seamless integration of local Large Language Models (LLMs) with Siyuan, using the powerful technique of Retrieval Augmented Generation (RAG). RAG combines your notes and optionally sub-documents as retrieved context to augment the prompt sent to the AI, allowing the model to generate accurate, context-aware responses without manual copy-pasting. This creates a privacy-focused, offline AI experience directly within your knowledge management environment.
+
+## Demo
+
+// TODO
 
 ## Features
 
@@ -10,20 +14,21 @@ A powerful AI assistant plugin for SiYuan that leverages your documents as conte
 - 💬 **Per-Document Chat History**: Maintains separate conversation history for each document
 - ⚙️ **Flexible Configuration**: Customize model, temperature, and context settings
 
-## Installation
 
-1. Clone this repository
-2. Install dependencies: `pnpm i`
-3. Copy `.env.example` to `.env` and set your SiYuan workspace path
-4. Run `pnpm dev` to build the plugin
-5. Restart SiYuan and enable the plugin from Settings → Marketplace
+## Recommended Ollama Models for Multi-Document Tasks
 
-## Setup
+- Llama 3.1 (8B or 70B): State-of-the-art model excellent for deep summarization, analysis, and evaluation.
+- Mistral 7B: Efficient and high-performing, balancing speed and accuracy.
+- Granite 3.x (8B): Strong accuracy and good efficiency.
+- Phi-3 (3.8B): Lightweight but capable, great for resource-constrained setups.
+- Gemma 7B: Optimized for conversational and summarization tasks.
 
-### Prerequisites
+Example: `ollama run llama3.1` - downloads Llama 3.1 and makes it available in Siyuan.
+
+## Prerequisites
 
 - [Ollama](https://ollama.ai/) installed and running
-- At least one AI model downloaded in Ollama (e.g., `orca2`, `llama2`, `mistral`, `codellama`)
+- At least one AI model downloaded in Ollama (e.g., `llama3.1`, `mistral`, `codellama`)
 
 ### Configuration
 
@@ -31,7 +36,7 @@ A powerful AI assistant plugin for SiYuan that leverages your documents as conte
 2. Configure your Ollama URL (default: `http://localhost:11434`)
 3. Select your preferred AI model
 4. Adjust temperature if needed (0.1 recommended for accurate responses)
-5. Enable "Include Sub Documents" if you want the AI to consider related documents in the same folder
+5. Enable "Include Sub Documents" if you want the AI to consider child documents in the same folder
 
 ## Usage
 
@@ -39,6 +44,10 @@ A powerful AI assistant plugin for SiYuan that leverages your documents as conte
 2. Open the RAG Assistant panel
 3. Ask questions about the document - the AI will use the document content as context
 4. Your conversation history is saved per document, but also deletable.
+
+## What is Retrieval Augmented Generation (RAG)?
+
+RAG is an AI technique that improves large language model outputs by retrieving relevant documents from your notes or external sources and including them as context in the prompt. This hybrid approach ensures responses are accurate, current, and grounded in your specific data, reducing hallucinations and enhancing reliability. It’s especially powerful for multi-document summarization, analysis, and evaluation tasks within your personal knowledge base.
 
 ### Example Questions
 
@@ -53,26 +62,3 @@ A powerful AI assistant plugin for SiYuan that leverages your documents as conte
 - **Context-Free Chats**: When enabled, conversations won't use document context (general AI chat mode)
 - **Include Sub Documents**: When enabled, the AI will have access to all documents in the same folder as context
 
-## Development
-
-```bash
-# Install dependencies
-pnpm i
-
-# Development mode with watch
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Release new version
-pnpm release
-```
-
-## License
-
-[Add your license here]
-
-## Credits
-
-Built with SiYuan plugin template using Vite and Vue 3.

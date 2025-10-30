@@ -1,6 +1,6 @@
 {
   "name": "siyuan-rag-assistant",
-  "author": "Alexander Pape",
+  "author": "Macavity",
   "url": "https://github.com/Macavity/siyuan-rag-assistant",
   "version": "1.0.0",
   "minAppVersion": "2.10.14",
@@ -12,14 +12,14 @@
     "all"
   ],
   "displayName": {
-    "default": "RAG AI Assistant",
-    "en_US": "RAG AI Assistant",
-    "zh_CN": "RAG AI Assistant"
+    "default": "Local LLM RAG Assistant",
+    "en_US": "Local LLM RAG Assistant",
+    "zh_CN": "本地 LLM RAG 助手"
   },
   "description": {
-    "default": "RAG AI Assistant",
-    "en_US": "RAG AI Assistant",
-    "zh_CN": "RAG AI Assistant"
+    "default": "A powerful AI assistant plugin for Siyuan that leverages your documents as context for intelligent conversations using local Ollama GenAI.",
+    "en_US": "A powerful AI assistant plugin for Siyuan that leverages your documents as context for intelligent conversations using local Ollama GenAI.",
+    "zh_CN": "一个强大的 AI 助手插件，利用您的文档作为上下文，使用本地 Ollama GenAI 进行智能对话。"
   },
   "readme": {
     "default": "README.md",
@@ -31,5 +31,5 @@
     "github": "https://github.com/sponsors/Macavity",
     "custom": []
   },
-  "keywords": []
+  "keywords": ["local", "llm", "rag", "assistant", "ollama", "AI","GenAI", "documents", "search", "retrieval", "augmented", "generation"]
 }

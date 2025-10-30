@@ -158,25 +158,6 @@ const main = async () => {
     console.log('✅  package.json updated')
 
     console.log('🔄  \x1B[90m Ready to commit new version and create tag...\x1B[0m')
-    exec(
-      `git add ./plugin.json ./package.json && git commit -m "chore: update version to ${newVersion}" && git push && git tag v${newVersion}`,
-      (err, stdout) => {
-        if (err) {
-          console.error('\x1B[31m%s\x1B[0m', '❌  Error for adding and committing:', err)
-          process.exit(1)
-        }
-
-        console.log('🔄  \x1B[90mTag Created, pushing...\x1B[0m')
-        exec(`git push origin v${newVersion}`, (err) => {
-          if (err) {
-            console.error('\x1B[31m%s\x1B[0m', '❌  Error for pushing tag:', err)
-            process.exit(1)
-          }
-          console.log(`\n✅  Version successfully updated to: \x1B[32m${newVersion}\x1B[0m\n`)
-        })
-      },
-    )
-
 
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', '❌  Error:', error)
