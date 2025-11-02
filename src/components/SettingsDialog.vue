@@ -5,6 +5,19 @@
     </div>
 
     <div class="rag-assistant-dialog__body">
+      <WarningBanner
+        v-if="connectionError"
+        variant="error"
+        title="Ollama Not Responding"
+        :message="connectionError"
+        :action-button="{
+          text: 'Refresh',
+          onClick: fetchModels,
+          disabled: loadingModels,
+        }"
+        class="rag-assistant-dialog__warning"
+      />
+
       <div class="rag-assistant-settings-content">
         <!-- Ollama URL Input -->
         <div class="rag-assistant-setting-item">
@@ -60,13 +73,17 @@
 import type { RAGAssistantSettings } from "@/types/settings"
 import { onMounted, ref, watch } from "vue"
 import { pushMsg } from "@/api"
-import { fetchOllamaModels } from "@/services/ollama"
+import {
+  fetchOllamaModels,
+  OllamaConnectionError,
+} from "@/services/ollama"
 import { DEFAULT_SETTINGS } from "@/types/settings"
 import SyButton from "./SiyuanTheme/SyButton.vue"
 import SyCheckbox from "./SiyuanTheme/SyCheckbox.vue"
 import SyInput from "./SiyuanTheme/SyInput.vue"
 import SySelect from "./SiyuanTheme/SySelect.vue"
 import SySlider from "./SiyuanTheme/SySlider.vue"
+import WarningBanner from "./WarningBanner.vue"
 
 const props = defineProps<{
   onClose: () => void
@@ -75,6 +92,7 @@ const props = defineProps<{
 }>()
 
 const loadingModels = ref(false)
+const connectionError = ref<string | null>(null)
 const settings = ref<RAGAssistantSettings>({ ...DEFAULT_SETTINGS })
 const modelOptions = ref<Array<{ value: string; text: string }>>([
   {
@@ -115,6 +133,7 @@ watch(
 
 async function fetchModels() {
   if (!settings.value.ollamaUrl || settings.value.ollamaUrl.trim() === "") {
+    connectionError.value = null
     modelOptions.value = [
       {
         value: "",
@@ -125,10 +144,13 @@ async function fetchModels() {
   }
 
   loadingModels.value = true
+  connectionError.value = null
+
   try {
     const models = await fetchOllamaModels(settings.value.ollamaUrl)
 
     if (models.length === 0) {
+      connectionError.value = null
       modelOptions.value = [
         {
           value: "",
@@ -138,6 +160,8 @@ async function fetchModels() {
       return
     }
 
+    // Success - clear any previous errors
+    connectionError.value = null
     modelOptions.value = models.map((model) => ({
       value: model.name,
       text: model.name,
@@ -151,6 +175,15 @@ async function fetchModels() {
     pushMsg("Models loaded successfully")
   } catch (error) {
     console.error("Failed to fetch models:", error)
+    
+    if (error instanceof OllamaConnectionError) {
+      // Show connection error in the warning banner
+      connectionError.value = `Ollama does not respond on ${settings.value.ollamaUrl}. Please ensure Ollama is running and the URL is correct.`
+    } else {
+      // Generic error
+      connectionError.value = null
+    }
+    
     modelOptions.value = [
       {
         value: "",
@@ -233,6 +266,11 @@ function saveSettings() {
   font-size: 14px;
   font-weight: 500;
   color: var(--b3-theme-on-surface);
+}
+
+.rag-assistant-dialog__warning {
+  margin-bottom: 16px;
+  border-radius: var(--b3-border-radius-b);
 }
 
 .rag-assistant-dialog__footer {
