@@ -2,14 +2,13 @@
   "name": "siyuan-rag-assistant",
   "author": "Macavity",
   "url": "https://github.com/Macavity/siyuan-rag-assistant",
-  "version": "1.0.1",
-  "minAppVersion": "2.10.14",
+  "version": "1.0.2",
+  "minAppVersion": "3.0.0",
   "disabledInPublish": true,
   "backends": ["all"],
   "frontends": ["all"],
   "displayName": {
     "default": "Local LLM RAG Assistant",
-    "en_US": "Local LLM RAG Assistant",
     "zh_CN": "本地 LLM RAG 助手"
   },
   "description": {
@@ -19,26 +18,15 @@
   },
   "readme": {
     "default": "README.md",
-    "en_US": "README.md",
     "zh_CN": "README_zh_CN.md"
   },
   "funding": {
-    "patreon": "https://www.patreon.com/paneon",
-    "github": "https://github.com/sponsors/Macavity",
-    "custom": []
+    "github": "Macavity"
   },
   "keywords": [
-    "local",
-    "llm",
-    "rag",
-    "assistant",
     "ollama",
-    "AI",
     "GenAI",
     "documents",
-    "search",
-    "retrieval",
-    "augmented",
-    "generation"
+    "search"
   ]
 }

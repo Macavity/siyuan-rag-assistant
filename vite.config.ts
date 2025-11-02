@@ -89,8 +89,9 @@ export default defineConfig(({ mode }) => {
         // Could also be a dictionary or array of multiple entry points
         entry: resolve(__dirname, "src/index.ts"),
         // ensure correct extension when package type is module
-        fileName: (format) => (format === "cjs" ? "index.cjs" : "index.js"),
-        formats: ["cjs"],
+        fileName: () => "index.js",
+        formats: ["umd"],
+        name: "RAGAssistantPlugin",
       },
       rollupOptions: {
         plugins: [
@@ -127,8 +128,14 @@ export default defineConfig(({ mode }) => {
 
         output: {
           assetFileNames: (assetInfo) => {
-            if (assetInfo.name === "style.css") return "index.css"
+            // Ensure main CSS files are named "index.css"
+            if (assetInfo.name && assetInfo.name.endsWith(".css")) {
+              return "index.css"
+            }
             return "[name][extname]"
+          },
+          globals: {
+            siyuan: "siyuan",
           },
         },
       },

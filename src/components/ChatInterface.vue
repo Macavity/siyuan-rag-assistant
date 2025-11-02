@@ -1,13 +1,23 @@
 <template>
   <div class="chat-interface">
-    <!-- Settings Warning -->
-    <div v-if="!isConfigured" class="settings-warning">
-      <div class="warning-icon">⚠️</div>
-      <div class="warning-content">
-        <div class="warning-title">Configuration Required</div>
-        <div class="warning-message">Please configure Ollama URL and model in settings.</div>
-      </div>
-    </div>
+    <WarningBanner
+      v-if="connectionError"
+      variant="error"
+      title="Ollama Not Responding"
+      :message="connectionError"
+      :action-button="{
+        text: 'Refresh',
+        onClick: handleRefreshConnection,
+        disabled: isLoading,
+      }"
+    />
+
+    <WarningBanner
+      v-else-if="!isConfigured"
+      variant="info"
+      title="Configuration Required"
+      message="Please configure Ollama URL and model in settings."
+    />
 
     <!-- Chat History Area -->
     <ChatHistory
@@ -47,6 +57,8 @@ import {
 } from "@/utils/message-factory.ts"
 import ChatHistory from "./ChatHistory.vue"
 import InputArea from "./InputArea.vue"
+import WarningBanner from "./WarningBanner.vue"
+import { LOG_PREFIX } from "@/constants"
 
 const plugin = usePlugin() as unknown as RAGAssistantPlugin
 
@@ -60,13 +72,21 @@ const {
   buildContextualMessage,
   initDocumentContext,
 } = useDocumentContext()
-const { isConfigured, isLoading, checkConfiguration, sendMessage } = useChatMessages(plugin)
+const {
+  isConfigured,
+  isLoading,
+  connectionError,
+  checkConfiguration,
+  checkConnection,
+  sendMessage,
+  clearConnectionError,
+} = useChatMessages(plugin)
 
 const currentInput = ref("")
 const chatHistoryRef = ref<InstanceType<typeof ChatHistory> | null>(null)
 
 // Scroll to bottom using ChatHistory component's method
-const scrollToBottom = () => {
+const scrollToBottom = (): void => {
   chatHistoryRef.value?.scrollToBottom()
 }
 
@@ -92,6 +112,9 @@ onBeforeUnmount(() => {
   }
 })
 
+// Track if we've completed initial mount to prevent watcher from firing on mount
+const isMounted = ref(false)
+
 // Initialize on mount
 onMounted(async () => {
   // Initialize with current document context if available
@@ -102,7 +125,31 @@ onMounted(async () => {
   }
 
   await checkConfiguration()
+  // Check connection proactively when panel opens (even if not fully configured)
+  // This allows showing connection errors before user configures model
+  await checkConnection()
+  
+  // Mark as mounted after initial checks are complete
+  isMounted.value = true
+  
+  console.debug(LOG_PREFIX, "ChatInterface mounted - connectionError:", connectionError.value)
   scrollToBottom()
+})
+
+// Watch for configuration changes and re-check connection
+watch(isConfigured, async (newValue) => {
+  // Only react to changes after initial mount
+  if (!isMounted.value) {
+    return
+  }
+  
+  if (newValue) {
+    // Only check connection if configured
+    await checkConnection()
+  } else {
+    // Clear connection error if not configured
+    clearConnectionError()
+  }
 })
 
 // Watch for loading state changes and scroll to show indicator
@@ -115,106 +162,106 @@ watch(isLoading, async (newValue) => {
 })
 
 // Handle document button click
-const handleDocumentClick = () => {
+const handleDocumentClick = (): void => {
   const docId = documentContext.value.documentId
   if (docId) {
-    // Navigate to the block using SiYuan's block URL
     window.location.href = `siyuan://blocks/${docId}`
   }
 }
 
 // Handle clear history button click
-const handleClearHistory = () => {
+const handleClearHistory = (): void => {
   clearHistory()
-  // History is automatically saved by clearHistory via debounced save
+}
+
+// Handle refresh connection button click
+const handleRefreshConnection = async (): Promise<void> => {
+  clearConnectionError()
+  await checkConfiguration()
+  await checkConnection()
+}
+
+type ContextualMessages = {
+  contextualMessage: string
+  systemMessage: ReturnType<typeof buildContextFreeSystemMessage> | ReturnType<typeof buildContextualSystemMessage>
+}
+
+/**
+ * Build contextual message and system message based on settings
+ */
+const buildContextualMessages = async (
+  userMessage: string,
+  settings: Awaited<ReturnType<typeof plugin.getSettings>>,
+): Promise<ContextualMessages> => {
+  if (settings?.contextFree) {
+    return {
+      contextualMessage: userMessage,
+      systemMessage: buildContextFreeSystemMessage(),
+    }
+  }
+
+  return {
+    contextualMessage: await buildContextualMessage(userMessage, settings),
+    systemMessage: buildContextualSystemMessage(),
+  }
+}
+
+/**
+ * Send message and handle response
+ */
+const sendMessageAndHandleResponse = async (
+  userMessage: string,
+  contextualMessage: string,
+  systemMessage: ContextualMessages["systemMessage"],
+): Promise<void> => {
+  const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+  addMessageToHistory(buildAssistantMessage(response))
+
+  await nextTick()
+  scrollToBottom()
 }
 
 // Handle rewrite button click - removes assistant message and re-sends the request
-const handleRewrite = async (assistantIndex: number) => {
-  // Find the last user message before this assistant message
+const handleRewrite = async (assistantIndex: number): Promise<void> => {
   const lastUserIndex = assistantIndex - 1
 
-  if (lastUserIndex < 0 || messages.value[lastUserIndex].role !== "user") {
-    console.error("Cannot rewrite: no user message found before assistant message")
+  if (lastUserIndex < 0 || messages.value[lastUserIndex]?.role !== "user") {
+    console.error(LOG_PREFIX, "Cannot rewrite: no user message found before assistant message")
     return
   }
 
-  // Get the user message content
   const userMessage = messages.value[lastUserIndex].content
-
-  // Remove the assistant message (and any messages after it, if any)
   removeMessagesFromIndex(assistantIndex)
 
-  // Scroll to bottom
   await nextTick()
   scrollToBottom()
 
-  // Get settings
   const settings = await plugin.getSettings()
+  const { contextualMessage, systemMessage } = await buildContextualMessages(userMessage, settings)
 
-  // If context-free mode, use general system message and user message as-is
-  let contextualMessage = userMessage
-  let systemMessage = buildContextFreeSystemMessage()
-
-  // If context-aware mode, build contextual message with document content
-  if (!settings?.contextFree) {
-    systemMessage = buildContextualSystemMessage()
-    contextualMessage = await buildContextualMessage(userMessage, settings)
-  }
-
-  // Send message via composable
-  const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
-
-  // Add assistant response to history (auto-saves via debounced save)
-  addMessageToHistory(buildAssistantMessage(response))
-
-  // Scroll again after response
-  await nextTick()
-  scrollToBottom()
+  await sendMessageAndHandleResponse(userMessage, contextualMessage, systemMessage)
 }
 
 // Handle sending messages
-const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
-  if (event) {
-    event.preventDefault()
-  }
+const handleSendMessage = async (event?: MouseEvent | KeyboardEvent): Promise<void> => {
+  event?.preventDefault()
 
-  if (!currentInput.value.trim() || !isConfigured.value) {
+  const trimmedInput = currentInput.value.trim()
+  if (!trimmedInput || !isConfigured.value) {
     return
   }
 
-  const userMessage = currentInput.value.trim()
+  const userMessage = trimmedInput
   currentInput.value = ""
 
-  // Get settings
-  const settings = await plugin.getSettings()
-
-  // If context-free mode, use general system message and user message as-is
-  let contextualMessage = userMessage
-  let systemMessage = buildContextFreeSystemMessage()
-
-  // If context-aware mode, build contextual message with document content
-  if (!settings?.contextFree) {
-    systemMessage = buildContextualSystemMessage()
-    contextualMessage = await buildContextualMessage(userMessage, settings)
-  }
-
-  // Add user message to history
   addMessageToHistory(buildUserMessage(userMessage))
-
-  // Scroll to bottom
   await nextTick()
   scrollToBottom()
 
-  // Send message via composable
-  const response = await sendMessage(userMessage, contextualMessage, systemMessage, messages)
+  const settings = await plugin.getSettings()
+  const { contextualMessage, systemMessage } = await buildContextualMessages(userMessage, settings)
 
-  // Add assistant response to history (auto-saves via debounced save)
-  addMessageToHistory(buildAssistantMessage(response))
-
-  // Scroll again after response
-  await nextTick()
-  scrollToBottom()
+  await sendMessageAndHandleResponse(userMessage, contextualMessage, systemMessage)
 }
 </script>
 
@@ -224,34 +271,5 @@ const handleSendMessage = async (event?: MouseEvent | KeyboardEvent) => {
   flex-direction: column;
   height: 100%;
   width: 100%;
-}
-
-.settings-warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background-color: var(--b3-theme-background-light);
-  border-bottom: 1px solid var(--b3-border-color);
-  color: var(--b3-theme-on-surface);
-}
-
-.warning-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.warning-message {
-  font-size: 14px;
-  color: var(--b3-theme-on-surface-light);
 }
 </style>
