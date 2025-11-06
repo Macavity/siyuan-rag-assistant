@@ -2,7 +2,7 @@
   "name": "siyuan-rag-assistant",
   "author": "Macavity",
   "url": "https://github.com/Macavity/siyuan-rag-assistant",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minAppVersion": "3.0.0",
   "disabledInPublish": true,
   "backends": ["all"],
@@ -24,9 +24,9 @@
     "github": "Macavity"
   },
   "keywords": [
-    "ollama",
-    "GenAI",
-    "documents",
-    "search"
+    "search",
+    "retrieval",
+    "augmented",
+    "generation"
   ]
 }
