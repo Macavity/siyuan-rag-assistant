@@ -9,12 +9,13 @@
   "frontends": ["all"],
   "displayName": {
     "default": "Local LLM RAG Assistant",
-    "zh_CN": "本地 LLM RAG 助手"
+    "zh_CN": "本地 LLM RAG 助手",
+    "de_DE": "Lokaler LLM RAG-Assistent"
   },
   "description": {
-    "default": "A powerful AI assistant plugin for Siyuan that leverages your documents as context for intelligent conversations using local Ollama GenAI.",
-    "en_US": "A powerful AI assistant plugin for Siyuan that leverages your documents as context for intelligent conversations using local Ollama GenAI.",
-    "zh_CN": "一个强大的 AI 助手插件，利用您的文档作为上下文，使用本地 Ollama GenAI 进行智能对话。"
+    "default": "A powerful AI assistant plugin for Siyuan that leverages your documents as context for conversations using local Ollama GenAI.",
+    "zh_CN": "一个强大的 AI 助手插件，利用您的文档作为上下文，使用本地 Ollama GenAI 进行智能对话。",
+    "de_DE": "Ein leistungsstarkes KI-Assistenten-Plugin für Siyuan, das Ihre Dokumente als Kontext für Chats mit einer lokalen Ollama GenAI nutzt."
   },
   "readme": {
     "default": "README.md",

@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
             dest: "./",
           },
           {
-            src: "./src/i18n/**",
+            src: "./src/i18n/*",
             dest: "./i18n/",
           },
         ],
