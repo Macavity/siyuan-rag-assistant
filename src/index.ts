@@ -110,6 +110,11 @@ export default class RAGAssistantPlugin extends Plugin {
     destroy()
   }
 
+  uninstall(): void {
+    destroy()
+    this.removeData(STORAGE_NAME)
+  }
+
   async openSetting() {
     await this.createSettingsDialog()
   }
