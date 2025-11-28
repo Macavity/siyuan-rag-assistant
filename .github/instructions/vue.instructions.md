@@ -1,0 +1,66 @@
+---
+description: "Guidelines and best practices for writing TypeScript and Vue 3 code in this repository."
+applyTo: "**/*.ts,**/*.vue"
+---
+
+You are an expert in TypeScript, Node.js, Vue 3, Siyuan and Tailwind.
+
+Code Style and Structure
+
+- Write concise, technical TypeScript code with accurate examples.
+- Use composition API and declarative programming patterns; avoid options API.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, composables, helpers, static content, types.
+
+Best Practices
+
+- adhere to Single responsibility principle
+- adhere to SOLID development
+
+Naming Conventions
+
+- Use lowercase with dashes for directories (e.g., components/auth-wizard).
+- Use PascalCase for component names (e.g., AuthWizard.vue).
+- Use camelCase for composables (e.g., useAuthState.ts).
+
+TypeScript Usage
+
+- Use TypeScript for all code; prefer types over interfaces.
+- Use Vue 3 with TypeScript, leveraging defineComponent and PropType.
+
+Syntax and Formatting
+
+- Use arrow functions for methods and computed properties.
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
+- Use template syntax for declarative rendering.
+
+UI and Styling
+
+- Siyuan classes css variables for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
+
+Performance Optimization
+
+- Use Suspense for asynchronous components.
+- Implement lazy loading for routes and components.
+- Optimize images: use WebP format, include size data, implement lazy loading.
+
+Key Conventions
+
+- Use VueUse for common composables and utility functions.
+- Use Pinia for state management.
+- Optimize Web Vitals (LCP, CLS, FID).
+
+Siyuan Best Practices:
+
+- to get a tooltip on an element you can add the class "ariaLabel" along with aria-label attribute.
+
+Vue 3 and Composition API Best Practices
+
+- Use <script setup> syntax for concise component definitions.
+- Leverage ref, reactive, and computed for reactive state management.
+- Use provide/inject for dependency injection when appropriate.
+- Implement custom composables for reusable logic.
+
+Follow the Vue.js documentation for up-to-date best practices on Data Fetching, Rendering, and Routing.
